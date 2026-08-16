@@ -1,0 +1,1286 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Academic Calendar — AILT1001</title>
+<style>
+:root {
+  --card: #ffffff;
+  --border: #d9dadd;
+  --border-dark: #c2c4c8;
+  --text: #2c2c2c;
+  --text-muted: #6b6d72;
+  --text-light: #9a9ca1;
+  --blue: #004a8f;
+  --blue-light: #dbe7f2;
+  --blue-bg: #eef3f8;
+  --accent: var(--blue);
+  --accent-dark: #003a70;
+  --accent-tint: var(--blue-bg);
+  --red: #b3261e;
+  --red-light: #f7dcda;
+  --grey: #8a8d92;
+  --grey-light: #ececed;
+  --green: #2e7d32;
+  --green-light: #dcead9;
+  --active-tint: #eaf7f0;
+  --purple: #6a3b9c;
+  --purple-light: #e9def2;
+  --amber: #b7791f;
+  --amber-light: #f6ecd4;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+html, body { height: 100%; }
+
+body {
+  font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  background: var(--card);
+  color: var(--text);
+  font-size: 14px;
+  margin: 0;
+  overflow: hidden;            /* card fills the viewport; scrolling happens inside it */
+}
+
+/* ===== CARD WRAPPER ===== */
+.cal-card {
+  width: 100%;
+  height: 100vh;               /* fill the frame edge-to-edge (no surrounding gap) */
+  background: var(--card);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ===== SINGLE HEADER BAR ===== */
+.cal-bar {
+  padding: 16px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  border-bottom: 1px solid var(--border);
+}
+
+.cal-month-title {
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: var(--text);
+  letter-spacing: 0.01em;
+  line-height: 1.1;
+}
+
+.cal-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+/* Segmented view toggle (pill) */
+.view-toggle {
+  display: inline-flex;
+  background: var(--grey-light);
+  border-radius: 999px;
+  padding: 3px;
+}
+
+.view-tab {
+  background: none;
+  border: none;
+  padding: 5px 14px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  color: var(--text-muted);
+  border-radius: 999px;
+  transition: all 0.15s;
+}
+.view-tab:hover { color: var(--accent); }
+.view-tab.active {
+  background: var(--accent);
+  color: #fff;
+  box-shadow: 0 1px 3px rgba(0, 74, 143, 0.35);
+}
+
+select.cal-select {
+  padding: 7px 28px 7px 12px;
+  border: 1px solid var(--border-dark);
+  border-radius: 999px;
+  background: var(--card);
+  font-size: 0.82rem;
+  color: var(--text);
+  cursor: pointer;
+  appearance: none;
+  -webkit-appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath d='M3 5l3 3 3-3' stroke='%23004a8f' stroke-width='1.5' fill='none'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 11px center;
+}
+select.cal-select:hover { border-color: var(--accent); }
+
+.nav-circle {
+  background: var(--card);
+  border: 1px solid var(--border-dark);
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.05rem;
+  color: var(--accent);
+  line-height: 1;
+  transition: all 0.15s;
+}
+.nav-circle:hover { background: var(--accent); color: #fff; border-color: var(--accent); }
+
+/* ===== CALENDAR CONTAINER ===== */
+.cal-container {
+  padding: 0;
+  overflow-y: auto;
+  overflow-x: auto;
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+/* ===== MONTH VIEW ===== */
+/* Weekday bar: separate sticky element (direct child of the scroll container)
+   so it stays pinned while the day cells scroll underneath. */
+.month-weekbar {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 1px;
+  background: var(--border);
+  border: 1px solid var(--border);
+  border-bottom: none;
+  overflow: hidden;
+}
+
+.month-weekbar-cell {
+  background: var(--blue-light);
+  padding: 10px 4px;
+  text-align: center;
+  font-size: 0.74rem;
+  font-weight: 700;
+  color: var(--accent-dark);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.month-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  border: 1px solid var(--border);
+  border-top: none;
+  background: var(--border);
+  gap: 1px;
+}
+
+.month-cell {
+  background: var(--card);
+  min-height: 132px;
+  padding: 7px 9px;
+  transition: background 0.1s;
+  position: relative;
+  overflow: hidden;
+}
+.month-cell:hover { background: #f6f9fc; }
+
+.month-cell.other-month {
+  background: #f6f7f8;
+}
+.month-cell.other-month:hover { background: #f0f1f3; }
+.month-cell.other-month .day-num {
+  color: var(--text-light);
+}
+
+.month-cell.today {
+  background: var(--blue-bg);
+  box-shadow: inset 0 0 0 2px var(--accent);
+}
+.month-cell.today:hover { background: #e6eef7; }
+
+.month-cell.subclass-active {
+  background: var(--active-tint);
+}
+.month-cell.subclass-active.today { background: var(--blue-bg); }
+
+.day-num {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 22px;
+  height: 22px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--text);
+  line-height: 1;
+}
+
+.month-cell.today .day-num {
+  background: var(--accent);
+  color: #fff;
+  border-radius: 50%;
+}
+
+.event-list {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  margin-top: 4px;
+}
+
+.event-item {
+  line-height: 1.25;
+  font-size: 0.68rem;
+  padding: 2px 6px;
+  border-radius: 5px;
+  background: var(--grey-light);
+  border-left: 3px solid var(--grey);
+  overflow: hidden;
+}
+
+.event-title {
+  font-weight: 600;
+  color: var(--text);
+  white-space: normal;
+  word-break: break-word;
+  display: block;
+}
+
+.event-line {
+  display: block;
+  font-size: 0.62rem;
+  opacity: 0.88;
+  margin-top: 1px;
+  white-space: normal;
+  word-break: break-word;
+}
+
+.event-subs {
+  display: block;
+  font-size: 0.62rem;
+  font-weight: 500;
+  opacity: 0.82;
+  line-height: 1.25;
+  margin-top: 1px;
+  white-space: normal;
+  word-break: break-word;
+}
+
+/* Clickable event links (month + week) */
+.event-link, .week-allday-link {
+  color: inherit;
+  text-decoration: none;
+  text-underline-offset: 2px;
+  cursor: pointer;
+}
+.event-link:hover, .week-allday-link:hover { text-decoration: underline; }
+
+.event-item.blue   { background: var(--blue-light);   border-left-color: var(--blue); }
+.event-item.blue   .event-title { color: var(--accent-dark); }
+.event-item.green  { background: var(--green-light);  border-left-color: var(--green); }
+.event-item.green  .event-title { color: #1f5c22; }
+.event-item.red    { background: var(--red-light);    border-left-color: var(--red); }
+.event-item.red    .event-title { color: #8f1c16; }
+.event-item.purple { background: var(--purple-light); border-left-color: var(--purple); }
+.event-item.purple .event-title { color: #522e79; }
+.event-item.amber  { background: var(--amber-light);  border-left-color: var(--amber); }
+.event-item.amber  .event-title { color: #8a5b17; }
+.event-item.grey   { background: var(--grey-light);   border-left-color: var(--grey); }
+.event-item.grey   .event-title { color: #4a4c50; }
+.event-item.lecture   { background: #ccfbf1;           border-left-color: #0d9488; }
+.event-item.lecture   .event-title { color: #115e59; }
+
+.more-events {
+  font-size: 0.66rem;
+  color: var(--accent);
+  margin-top: 1px;
+  padding-left: 2px;
+}
+
+
+/* ===== WEEK VIEW ===== */
+.week-grid {
+  display: grid;
+  grid-template-columns: 66px repeat(7, 1fr);
+  border: 1px solid var(--border);
+  background: var(--card);
+  position: sticky;        /* keep the day/all-day header pinned while scrolling */
+  top: 0;
+  z-index: 6;
+}
+.week-header-cell {
+  background: var(--accent-tint);
+  padding: 8px 6px;
+  text-align: center;
+  border-bottom: 1px solid var(--border);
+  border-right: 1px solid var(--border);
+}
+.week-header-cell:last-child { border-right: none; }
+
+.week-header-cell .wh-day {
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: var(--accent);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.week-header-cell .wh-date {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--text);
+  margin-top: 2px;
+}
+.week-header-cell.today .wh-date {
+  background: var(--accent);
+  color: #fff;
+  border-radius: 50%;
+  width: 30px;
+  height: 30px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.week-header-cell.subclass-active {
+  background: var(--active-tint);
+}
+
+.week-corner {
+  background: var(--accent-tint);
+  border-bottom: 1px solid var(--border);
+  border-right: 1px solid var(--border);
+  position: sticky;
+  left: 0;
+  z-index: 2;              /* above the day header cells during horizontal scroll */
+}
+
+.week-event-card {
+  position: absolute;
+  border-radius: 5px;
+  padding: 4px 22px 4px 8px;   /* right padding ≈ 4 chars text-to-edge */
+  font-size: 0.68rem;
+  line-height: 1.3;
+  overflow: hidden;
+  z-index: 1;
+  border-left: 3px solid;
+}
+
+.week-event-card.blue   { background: var(--blue-light);   border-left-color: var(--blue);   color: var(--accent-dark); }
+.week-event-card.red    { background: var(--red-light);    border-left-color: var(--red);    color: #8f1c16; }
+.week-event-card.green  { background: var(--green-light);  border-left-color: var(--green);  color: #1f5c22; }
+.week-event-card.purple { background: var(--purple-light); border-left-color: var(--purple); color: #522e79; }
+.week-event-card.amber  { background: var(--amber-light);  border-left-color: var(--amber);  color: #8a5b17; }
+.week-event-card.grey   { background: var(--grey-light);   border-left-color: var(--grey);   color: #4a4c50; }
+.week-event-card.lecture { background: #ccfbf1;             border-left-color: #0d9488;       color: #115e59; }
+
+.week-event-title { font-weight: 600; white-space: nowrap; }
+.week-event-line { font-size: 0.62rem; margin-top: 1px; opacity: 0.88; white-space: nowrap; }
+
+/* All-day / banner events at the top of week view */
+.week-allday-corner {
+  background: #fafbfc;
+  border-bottom: 1px solid var(--border);
+  border-right: 1px solid var(--border);
+  padding: 4px;
+  font-size: 0.65rem;
+  color: var(--text-muted);
+  position: sticky;
+  left: 0;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.week-allday-cell {
+  border-bottom: 1px solid var(--border);
+  border-right: 1px solid var(--border);
+  padding: 3px;
+  min-height: 28px;
+}
+.week-allday-cell:last-child { border-right: none; }
+
+.week-allday-pill {
+  font-size: 0.66rem;
+  padding: 2px 6px;
+  border-radius: 5px;
+  font-weight: 500;
+  margin-bottom: 2px;
+  border-left: 3px solid;
+  line-height: 1.25;
+}
+.week-allday-pill.blue   { background: var(--blue-light);   border-left-color: var(--blue);   color: var(--accent-dark); }
+.week-allday-pill.red    { background: var(--red-light);    border-left-color: var(--red);    color: #8f1c16; }
+.week-allday-pill.grey   { background: var(--grey-light);   border-left-color: var(--grey);   color: #4a4c50; }
+.week-allday-pill.green  { background: var(--green-light);  border-left-color: var(--green);  color: #1f5c22; }
+.week-allday-pill.purple { background: var(--purple-light); border-left-color: var(--purple); color: #522e79; }
+.week-allday-pill.amber  { background: var(--amber-light);  border-left-color: var(--amber);  color: #8a5b17; }
+
+/* Scrollable timed area for week view */
+.week-timed-area {
+  display: grid;
+  grid-template-columns: 66px repeat(7, 1fr);
+}
+
+.week-timed-time-col {
+  background: #fafbfc;
+  border-right: 1px solid var(--border);
+  position: sticky;
+  left: 0;
+  z-index: 3;             /* above the timed event cards during horizontal scroll */
+}
+
+.week-timed-day-col {
+  border-right: 1px solid var(--border);
+  position: relative;
+}
+.week-timed-day-col:last-child { border-right: none; }
+
+.time-slot-line {
+  height: 60px;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.time-label {
+  height: 60px;
+  padding: 2px 6px;
+  font-size: 0.68rem;
+  color: var(--text-muted);
+  border-bottom: 1px solid #f1f5f9;
+  display: flex;
+  align-items: flex-start;
+}
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 768px) {
+  .cal-card { margin: 12px; height: calc(100vh - 24px); width: calc(100% - 24px); }
+  .cal-bar { padding: 12px; }
+  .cal-container { padding: 10px; }
+  .cal-controls { gap: 6px; }
+  /* Keep the month grid legible on small screens: give it a min width so it
+     scrolls horizontally inside .cal-container (like the week view) instead of
+     cramming 7 columns into a narrow viewport. */
+  .month-grid, .month-weekbar { min-width: 560px; }
+  .month-cell { min-height: 64px; padding: 3px; }
+  .cal-month-title { font-size: 1.15rem; }
+  .month-weekbar-cell { font-size: 0.6rem; }
+  .event-item { font-size: 0.6rem; }
+}
+</style>
+</head>
+<body>
+
+<div class="cal-card">
+  <!-- SINGLE HEADER ROW: title + view toggle + controls -->
+  <div class="cal-bar">
+    <h1 class="cal-month-title" id="monthLabel"></h1>
+    <div class="cal-controls">
+      <div class="view-toggle">
+        <button class="view-tab" data-view="week" onclick="setView('week')">Week</button>
+        <button class="view-tab active" data-view="month" onclick="setView('month')">Month</button>
+      </div>
+      <select class="cal-select" id="subclassSelect" onchange="onSubclassChange()">
+        <option value="">All Studio Subs</option>
+      </select>
+      <select class="cal-select" id="monthJump" onchange="onMonthJump()">
+        <option value="2026-8">August 2026</option>
+        <option value="2026-9">September 2026</option>
+        <option value="2026-10">October 2026</option>
+        <option value="2026-11">November 2026</option>
+        <option value="2026-12">December 2026</option>
+      </select>
+      <button class="nav-circle" onclick="navPrev()" title="Previous">&lsaquo;</button>
+      <button class="nav-circle" onclick="navNext()" title="Next">&rsaquo;</button>
+    </div>
+  </div>
+
+  <!-- CALENDAR BODY -->
+  <div class="cal-container" id="calBody"></div>
+</div>
+
+<script>
+// ========================================
+// STATE
+// ========================================
+const TODAY = new Date(); // real current date — "today" moves forward each day
+
+// The calendar only holds Semester-1 term data; keep navigation inside it so
+// the month-jump dropdown always has a matching option and months aren't empty.
+const RANGE_MIN = new Date(2026, 7, 1);   // Aug 1, 2026
+const RANGE_MAX = new Date(2026, 11, 31); // Dec 31, 2026
+function clampAnchor() {
+  if (anchorDate < RANGE_MIN) anchorDate = new Date(RANGE_MIN);
+  else if (anchorDate > RANGE_MAX) anchorDate = new Date(RANGE_MAX);
+}
+
+// Single source of truth for position. All three views derive from this.
+// Set to today on load/refresh; switching views never changes it, so the
+// user's location is preserved until the page is refreshed.
+let anchorDate = new Date(TODAY);
+let currentView = 'month'; // 'month' | 'week'
+let selectedSubclass = ''; // '' = all
+
+// Derived each render from anchorDate (kept as globals for the renderers).
+let currentYear = anchorDate.getFullYear();
+let currentMonth = anchorDate.getMonth() + 1;
+let selectedWeekStart = getMonday(anchorDate);
+
+// Add/subtract whole months while clamping the day to the target month length.
+function addMonths(date, delta) {
+  const d = new Date(date);
+  const targetMonth = d.getMonth() + delta;
+  const first = new Date(d.getFullYear(), targetMonth, 1);
+  const daysInTarget = new Date(first.getFullYear(), first.getMonth() + 1, 0).getDate();
+  first.setDate(Math.min(d.getDate(), daysInTarget));
+  return first;
+}
+
+// ========================================
+// SUBCLASS DATA
+// ========================================
+const SUBCLASS_INFO = {};
+
+// Monday subclasses
+const monSubs = [
+  {id:1,day:'Mon',time:'9:00-10:50',venue:'MB249'},
+  {id:2,day:'Mon',time:'9:00-10:50',venue:'MB249'},
+  {id:3,day:'Mon',time:'11:00-12:50',venue:'MB249'},
+  {id:4,day:'Mon',time:'11:00-12:50',venue:'MB249'},
+  {id:5,day:'Mon',time:'13:00-14:50',venue:'MB249'},
+  {id:6,day:'Mon',time:'13:00-14:50',venue:'MB249'},
+  {id:7,day:'Mon',time:'15:00-16:50',venue:'MB249'},
+  {id:8,day:'Mon',time:'15:00-16:50',venue:'MB249'},
+  {id:9,day:'Mon',time:'17:00-18:50',venue:'MB249'},
+  {id:10,day:'Mon',time:'17:00-18:50',venue:'MB249'},
+  {id:11,day:'Mon',time:'17:00-18:50',venue:'MB100'},
+  {id:12,day:'Mon',time:'17:00-18:50',venue:'MB100'},
+];
+const tueSubs = [
+  {id:13,day:'Tue',time:'9:00-10:50',venue:'MB249'},
+  {id:14,day:'Tue',time:'9:00-10:50',venue:'MB249'},
+  {id:15,day:'Tue',time:'11:00-12:50',venue:'MB249'},
+  {id:16,day:'Tue',time:'11:00-12:50',venue:'MB249'},
+  {id:17,day:'Tue',time:'13:00-14:50',venue:'MB249'},
+  {id:18,day:'Tue',time:'13:00-14:50',venue:'MB249'},
+  {id:19,day:'Tue',time:'15:00-16:50',venue:'MB249'},
+  {id:20,day:'Tue',time:'15:00-16:50',venue:'MB249'},
+  {id:21,day:'Tue',time:'15:00-16:50',venue:'MB100'},
+  {id:22,day:'Tue',time:'15:00-16:50',venue:'MB100'},
+  {id:23,day:'Tue',time:'17:00-18:50',venue:'MB249'},
+  {id:24,day:'Tue',time:'17:00-18:50',venue:'MB249'},
+  {id:25,day:'Tue',time:'17:00-18:50',venue:'MB100'},
+  {id:26,day:'Tue',time:'17:00-18:50',venue:'MB100'},
+  {id:27,day:'Tue',time:'17:00-18:50',venue:'MB113G'},
+  {id:28,day:'Tue',time:'17:00-18:50',venue:'MB113G'},
+];
+const wedSubs = [
+  {id:29,day:'Wed',time:'9:00-10:50',venue:'MB167'},
+  {id:30,day:'Wed',time:'9:00-10:50',venue:'MB167'},
+  {id:31,day:'Wed',time:'9:00-10:50',venue:'KK101'},
+  {id:32,day:'Wed',time:'9:00-10:50',venue:'KK101'},
+  {id:33,day:'Wed',time:'11:00-12:50',venue:'MB167'},
+  {id:34,day:'Wed',time:'11:00-12:50',venue:'MB167'},
+  {id:35,day:'Wed',time:'13:00-14:50',venue:'MB249'},
+  {id:36,day:'Wed',time:'13:00-14:50',venue:'MB249'},
+  {id:37,day:'Wed',time:'13:00-14:50',venue:'MB100'},
+  {id:38,day:'Wed',time:'13:00-14:50',venue:'MB100'},
+  {id:39,day:'Wed',time:'13:00-14:50',venue:'MB113G'},
+  {id:40,day:'Wed',time:'13:00-14:50',venue:'MB113G'},
+  {id:41,day:'Wed',time:'15:00-16:50',venue:'MB100'},
+  {id:42,day:'Wed',time:'15:00-16:50',venue:'MB100'},
+  {id:43,day:'Wed',time:'15:00-16:50',venue:'MB249'},
+  {id:44,day:'Wed',time:'15:00-16:50',venue:'MB249'},
+  {id:45,day:'Wed',time:'15:00-16:50',venue:'MB113G'},
+  {id:46,day:'Wed',time:'15:00-16:50',venue:'MB113G'},
+  {id:47,day:'Wed',time:'17:00-18:50',venue:'MB249'},
+  {id:48,day:'Wed',time:'17:00-18:50',venue:'MB249'},
+  {id:49,day:'Wed',time:'17:00-18:50',venue:'MB100'},
+  {id:50,day:'Wed',time:'17:00-18:50',venue:'MB100'},
+  {id:51,day:'Wed',time:'17:00-18:50',venue:'MB113G'},
+  {id:52,day:'Wed',time:'17:00-18:50',venue:'MB113G'},
+];
+const thuSubs = [
+  {id:53,day:'Thu',time:'9:00-10:50',venue:'MB249'},
+  {id:54,day:'Thu',time:'9:00-10:50',venue:'MB249'},
+  {id:55,day:'Thu',time:'11:00-12:50',venue:'MB249'},
+  {id:56,day:'Thu',time:'11:00-12:50',venue:'MB249'},
+  {id:57,day:'Thu',time:'13:00-14:50',venue:'MB249'},
+  {id:58,day:'Thu',time:'13:00-14:50',venue:'MB249'},
+  {id:59,day:'Thu',time:'15:00-16:50',venue:'MB249'},
+  {id:60,day:'Thu',time:'15:00-16:50',venue:'MB249'},
+  {id:61,day:'Thu',time:'17:00-18:50',venue:'MB249'},
+  {id:62,day:'Thu',time:'17:00-18:50',venue:'MB249'},
+  {id:63,day:'Thu',time:'17:00-18:50',venue:'MB100'},
+  {id:64,day:'Thu',time:'17:00-18:50',venue:'MB100'},
+];
+const friSubs = [
+  {id:65,day:'Fri',time:'9:00-10:50',venue:'MB249'},
+  {id:66,day:'Fri',time:'9:00-10:50',venue:'MB249'},
+  {id:67,day:'Fri',time:'11:00-12:50',venue:'MB249'},
+  {id:68,day:'Fri',time:'11:00-12:50',venue:'MB249'},
+  {id:69,day:'Fri',time:'13:00-14:50',venue:'MB249'},
+  {id:70,day:'Fri',time:'13:00-14:50',venue:'MB249'},
+  {id:71,day:'Fri',time:'15:00-16:50',venue:'MB100'},
+  {id:72,day:'Fri',time:'15:00-16:50',venue:'MB100'},
+  {id:73,day:'Fri',time:'15:00-16:50',venue:'MB249'},
+  {id:74,day:'Fri',time:'15:00-16:50',venue:'MB249'},
+  {id:75,day:'Fri',time:'17:00-18:50',venue:'MB100'},
+  {id:76,day:'Fri',time:'17:00-18:50',venue:'MB100'},
+  {id:77,day:'Fri',time:'17:00-18:50',venue:'MB249'},
+  {id:78,day:'Fri',time:'17:00-18:50',venue:'MB249'},
+];
+const satSubs = [
+  {id:79,day:'Sat',time:'9:00-10:50',venue:'MB100'},
+  {id:81,day:'Sat',time:'9:00-10:50',venue:'MB113G'},
+  {id:83,day:'Sat',time:'9:00-10:50',venue:'MB249'},
+  {id:85,day:'Sat',time:'9:00-10:50',venue:'MB151'},
+  {id:87,day:'Sat',time:'11:00-12:50',venue:'MB249'},
+  {id:89,day:'Sat',time:'11:00-12:50',venue:'MB100'},
+  {id:91,day:'Sat',time:'11:00-12:50',venue:'MB113G'},
+  {id:93,day:'Sat',time:'11:00-12:50',venue:'MB151'},
+];
+
+[...monSubs,...tueSubs,...wedSubs,...thuSubs,...friSubs,...satSubs].forEach(s => {
+  SUBCLASS_INFO[s.id] = s;
+});
+
+// T-I split time mapping
+const SPLIT_TIMES = {
+  '9:00-10:50': { odd: '9:00-9:50', even: '10:00-10:50' },
+  '11:00-12:50': { odd: '11:00-11:50', even: '12:00-12:50' },
+  '13:00-14:50': { odd: '13:00-13:50', even: '14:00-14:50' },
+  '15:00-16:50': { odd: '15:00-15:50', even: '16:00-16:50' },
+  '17:00-18:50': { odd: '17:00-17:50', even: '18:00-18:50' },
+};
+
+// Saturday odd-only subclasses
+const SAT_SUBS = [79,81,83,85,87,89,91,93];
+
+// ========================================
+// EVENT DATA
+// ========================================
+// Each event: { date: 'YYYY-MM-DD', title, type: 'blue'|'red'|'green'|'purple'|'amber'|'grey'|'lecture', time?, venue?, subclasses?: [...], link?, allDay?, always?, fullText? }
+const EVENTS = [];
+
+// Helper to add event
+function addEvent(dateStr, title, type, opts = {}) {
+  EVENTS.push({ date: dateStr, title, type, ...opts });
+}
+
+// --- Enrollment ---
+const ENROLL_LINK = 'https://its.hku.hk/kb/tutorial-sign-up-application/';
+addEvent('2026-09-01', 'Project Studio Enrolment Opens 10:00 AM', 'green', { time: '10:00 AM', allDay: true, link: ENROLL_LINK, fullText: true });
+addEvent('2026-09-02', 'Project Studio Enrolment Open', 'green', { allDay: true, link: ENROLL_LINK, fullText: true });
+addEvent('2026-09-03', 'Project Studio Enrolment Open', 'green', { allDay: true, link: ENROLL_LINK, fullText: true });
+addEvent('2026-09-04', 'Project Studio Enrolment Open', 'green', { allDay: true, link: ENROLL_LINK, fullText: true });
+addEvent('2026-09-05', 'Project Studio Enrolment Closes 11:59 PM', 'green', { time: '11:59 PM', allDay: true, link: ENROLL_LINK, fullText: true });
+
+// --- Holidays ---
+addEvent('2026-09-26', 'Public Holiday: Day After Mid-Autumn Festival', 'red', { allDay: true, fullText: true });
+addEvent('2026-10-01', 'Public Holiday: National Day', 'red', { allDay: true, fullText: true });
+addEvent('2026-10-19', 'Public Holiday: Chung Yeung Festival', 'red', { allDay: true, fullText: true });
+
+// --- Reading Week ---
+for (let d = 12; d <= 17; d++) {
+  addEvent('2026-10-' + String(d).padStart(2,'0'), 'Reading Week - No Studio', 'grey', { allDay: true, fullText: true });
+}
+
+// --- Special Events ---
+addEvent('2026-11-25', 'Exhibition Day + Final Test', 'purple', { allDay: true, fullText: true });
+addEvent('2026-12-02', 'Make-up Test', 'purple', { allDay: true, fullText: true });
+
+// --- Studio Sessions ---
+
+// Helper to get subclass time for a PS session
+// For Studio I: split time. For others: full 2-hour slot.
+function getSubTime(subId, isPS1) {
+  const info = SUBCLASS_INFO[subId];
+  if (!info) return { time: '', venue: '' };
+  if (isPS1) {
+    const split = SPLIT_TIMES[info.time];
+    if (split) {
+      return { time: subId % 2 === 1 ? split.odd : split.even, venue: info.venue };
+    }
+  }
+  return { time: info.time, venue: info.venue };
+}
+
+// Studio I: All subclasses, 1 hour split
+// Sep 7 Mon (sub 1-12)
+function addPSSession(dateStr, title, subclasses, isPS1, opts = {}) {
+  subclasses.forEach(subId => {
+    const st = getSubTime(subId, isPS1);
+    addEvent(dateStr, title, opts.type || 'blue', {
+      time: st.time,
+      venue: st.venue,
+      subclasses: [subId],
+      ...opts,
+      type: opts.type || 'blue'
+    });
+  });
+}
+
+// Studio I
+addPSSession('2026-09-07', 'Studio I', [1,2,3,4,5,6,7,8,9,10,11,12], true);
+addPSSession('2026-09-08', 'Studio I', [13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28], true);
+addPSSession('2026-09-09', 'Studio I', [29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52], true);
+addPSSession('2026-09-10', 'Studio I', [53,54,55,56,57,58,59,60,61,62,63,64], true);
+addPSSession('2026-09-11', 'Studio I', [65,66,67,68,69,70,71,72,73,74,75,76,77,78], true);
+addPSSession('2026-09-12', 'Studio I', SAT_SUBS, true);
+
+// Studio II (Odd)
+addPSSession('2026-09-14', 'Studio II', [1,3,5,7,9,11], false);
+addPSSession('2026-09-15', 'Studio II', [13,15,17,19,21,23,25,27], false);
+addPSSession('2026-09-16', 'Studio II', [29,31,33,35,37,39,41,43,45,47,49,51], false);
+addPSSession('2026-09-17', 'Studio II', [53,55,57,59,61,63], false);
+addPSSession('2026-09-18', 'Studio II', [65,67,69,71,73,75,77], false);
+addPSSession('2026-09-19', 'Studio II', SAT_SUBS, false);
+
+// Studio II (Even)
+addPSSession('2026-09-21', 'Studio II', [2,4,6,8,10,12], false);
+addPSSession('2026-09-22', 'Studio II', [14,16,18,20,22,24,26,28], false);
+addPSSession('2026-09-23', 'Studio II', [30,32,34,36,38,40,42,44,46,48,50,52], false);
+addPSSession('2026-09-24', 'Studio II', [54,56,58,60,62,64], false);
+addPSSession('2026-09-25', 'Studio II', [66,68,70,72,74,76,78], false);
+
+// Studio III (Odd)
+addPSSession('2026-09-28', 'Studio III', [1,3,5,7,9,11], false);
+addPSSession('2026-09-29', 'Studio III', [13,15,17,19,21,23,25,27], false);
+addPSSession('2026-09-30', 'Studio III', [29,31,33,35,37,39,41,43,45,47,49,51], false);
+// Oct 1 Thu CANCELLED
+addEvent('2026-10-01', 'Odd Thursday Studio III cancelled (Sub: 53, 55, 57, 59, 61, 63)', 'amber', { allDay: true, subclasses: [53,55,57,59,61,63], fullText: true });
+addPSSession('2026-10-02', 'Studio III', [65,67,69,71,73,75,77], false);
+addPSSession('2026-10-03', 'Studio III', SAT_SUBS, false);
+
+// Studio III (Even)
+addPSSession('2026-10-05', 'Studio III', [2,4,6,8,10,12], false);
+addPSSession('2026-10-06', 'Studio III', [14,16,18,20,22,24,26,28], false);
+addPSSession('2026-10-07', 'Studio III', [30,32,34,36,38,40,42,44,46,48,50,52], false);
+addPSSession('2026-10-08', 'Studio III', [54,56,58,60,62,64], false);
+addPSSession('2026-10-09', 'Studio III', [66,68,70,72,74,76,78], false);
+
+// Studio IV (Odd)
+// Oct 19 Mon CANCELLED (Chung Yeung)
+addEvent('2026-10-19', 'Odd Monday Studio IV rescheduled to Oct 26', 'amber', { allDay: true, subclasses: [1,3,5,7,9,11], fullText: true });
+addPSSession('2026-10-20', 'Studio IV', [13,15,17,19,21,23,25,27], false);
+addPSSession('2026-10-21', 'Studio IV', [29,31,33,35,37,39,41,43,45,47,49,51], false);
+addPSSession('2026-10-22', 'Studio IV', [53,55,57,59,61,63], false);
+addPSSession('2026-10-23', 'Studio IV', [65,67,69,71,73,75,77], false);
+addPSSession('2026-10-24', 'Studio IV', SAT_SUBS, false);
+// Oct 26 RESCHEDULED (shows as normal Odd Monday session, per original)
+addPSSession('2026-10-26', 'Studio IV', [1,3,5,7,9,11], false);
+
+// Studio IV (Even)
+addPSSession('2026-10-27', 'Studio IV', [14,16,18,20,22,24,26,28], false);
+addPSSession('2026-10-28', 'Studio IV', [30,32,34,36,38,40,42,44,46,48,50,52], false);
+addPSSession('2026-10-29', 'Studio IV', [54,56,58,60,62,64], false);
+addPSSession('2026-10-30', 'Studio IV', [66,68,70,72,74,76,78], false);
+addPSSession('2026-11-02', 'Studio IV', [2,4,6,8,10,12], false);
+
+// Studio V (Odd)
+addPSSession('2026-11-03', 'Studio V', [13,15,17,19,21,23,25,27], false);
+addPSSession('2026-11-04', 'Studio V', [29,31,33,35,37,39,41,43,45,47,49,51], false);
+addPSSession('2026-11-05', 'Studio V', [53,55,57,59,61,63], false);
+addPSSession('2026-11-06', 'Studio V', [65,67,69,71,73,75,77], false);
+addPSSession('2026-11-07', 'Studio V', SAT_SUBS, false);
+addPSSession('2026-11-09', 'Studio V', [1,3,5,7,9,11], false);
+
+// Studio V (Even)
+addPSSession('2026-11-10', 'Studio V', [14,16,18,20,22,24,26,28], false);
+addPSSession('2026-11-11', 'Studio V', [30,32,34,36,38,40,42,44,46,48,50,52], false);
+addPSSession('2026-11-12', 'Studio V', [54,56,58,60,62,64], false);
+addPSSession('2026-11-13', 'Studio V', [66,68,70,72,74,76,78], false);
+addPSSession('2026-11-16', 'Studio V', [2,4,6,8,10,12], false);
+
+// --- Lectures (Wednesdays; all 8 lecture subclasses 1A–1H) ---
+const LECTURE_DATES = {
+  1: '2026-09-02', 2: '2026-09-09', 3: '2026-09-16', 4: '2026-09-23', 5: '2026-09-30',
+  6: '2026-10-07', 7: '2026-10-21', 8: '2026-10-28', 9: '2026-11-04'
+};
+const LECTURE_SUBS = [
+  { sub: '1A', time: '09:00-09:50', venue: 'CPD-LG.01' },
+  { sub: '1B', time: '10:00-10:50', venue: 'CPD-LG.01' },
+  { sub: '1C', time: '11:00-11:50', venue: 'CPD-LG.01' },
+  { sub: '1D', time: '12:00-12:50', venue: 'CPD-LG.01' },
+  { sub: '1E', time: '09:00-09:50', venue: 'LE1' },
+  { sub: '1F', time: '10:00-10:50', venue: 'LE1' },
+  { sub: '1G', time: '11:00-11:50', venue: 'LE1' },
+  { sub: '1H', time: '12:00-12:50', venue: 'LE1' }
+];
+Object.keys(LECTURE_DATES).forEach(n => {
+  LECTURE_SUBS.forEach(ls => {
+    addEvent(LECTURE_DATES[n], 'Lecture ' + n, 'lecture', {
+      time: ls.time, venue: ls.venue, subclasses: [ls.sub], always: true
+    });
+  });
+});
+
+
+// ========================================
+// SUBCLASS SELECTOR POPULATION
+// ========================================
+function populateSubclassSelect() {
+  const sel = document.getElementById('subclassSelect');
+  const groups = [
+    { label: 'Monday (1-12)', subs: monSubs },
+    { label: 'Tuesday (13-28)', subs: tueSubs },
+    { label: 'Wednesday (29-52)', subs: wedSubs },
+    { label: 'Thursday (53-64)', subs: thuSubs },
+    { label: 'Friday (65-78)', subs: friSubs },
+    { label: 'Saturday (79-93, odd)', subs: satSubs },
+  ];
+  groups.forEach(g => {
+    const optgroup = document.createElement('optgroup');
+    optgroup.label = g.label;
+    g.subs.forEach(s => {
+      const opt = document.createElement('option');
+      opt.value = s.id;
+      opt.textContent = 'Studio Sub ' + s.id;
+      optgroup.appendChild(opt);
+    });
+    sel.appendChild(optgroup);
+  });
+}
+
+// ========================================
+// DATE UTILITIES
+// ========================================
+function dateStr(d) {
+  return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+}
+
+function sameDay(a, b) {
+  return a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate();
+}
+
+function isToday(d) {
+  return sameDay(d, TODAY);
+}
+
+function dayOfWeekName(d) {
+  return ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'][d.getDay()];
+}
+
+function monthName(m) {
+  return ['January','February','March','April','May','June','July','August','September','October','November','December'][m - 1];
+}
+
+function getMonday(d) {
+  const dt = new Date(d);
+  const day = dt.getDay();
+  const diff = day === 0 ? -6 : 1 - day;
+  dt.setDate(dt.getDate() + diff);
+  return dt;
+}
+
+function addDays(d, n) {
+  const dt = new Date(d);
+  dt.setDate(dt.getDate() + n);
+  return dt;
+}
+
+// ========================================
+// EVENT QUERYING
+// ========================================
+function getEventsForDate(ds) {
+  const sub = selectedSubclass ? parseInt(selectedSubclass) : null;
+  return EVENTS.filter(e => {
+    if (e.date !== ds) return false;
+    if (sub) {
+      if (e.always) return true;                    // lectures etc. always show
+      if (e.subclasses && e.subclasses.length > 0) {
+        return e.subclasses.includes(sub);
+      }
+      // Non-subclass events (holidays, enrollment, etc.) always show
+      return true;
+    }
+    return true;
+  });
+}
+
+// Get deduplicated/summarized events for month cell display.
+// Lectures are shown first (front), then the rest.
+function getSummaryEventsForDate(ds) {
+  const sub = selectedSubclass ? parseInt(selectedSubclass) : null;
+  const all = EVENTS.filter(e => {
+    if (e.date !== ds) return false;
+    if (!sub) return true;
+    if (e.always) return true;                          // lectures always show
+    if (e.subclasses && e.subclasses.length > 0) return e.subclasses.includes(sub);
+    return true;                                        // general events
+  });
+
+  // Aggregate: subclass events grouped by title (combine their subclass lists).
+  const seen = new Map();
+  all.forEach(e => {
+    if (e.subclasses && e.subclasses.length > 0) {
+      const key = e.title + '|' + e.type;
+      if (!seen.has(key)) seen.set(key, { ...e, subclasses: [...e.subclasses] });
+      else {
+        const ex = seen.get(key);
+        e.subclasses.forEach(s => { if (!ex.subclasses.includes(s)) ex.subclasses.push(s); });
+      }
+    } else {
+      const key = e.title + '|' + e.type + '|' + (e.time || '');
+      if (!seen.has(key)) seen.set(key, e);
+    }
+  });
+  // Order: all-day items (enrollment, holidays, reading week…) first, then
+  // lectures, then studios.
+  const rank = e => e.allDay ? 0 : (e.type === 'lecture' ? 1 : 2);
+  return Array.from(seen.values()).sort((a, b) => rank(a) - rank(b));
+}
+
+// Check if a date has events for the selected subclass
+function dateHasSubclassEvent(ds) {
+  const sub = selectedSubclass ? parseInt(selectedSubclass) : null;
+  if (!sub) return false;
+  return EVENTS.some(e => e.date === ds && e.subclasses && e.subclasses.includes(sub));
+}
+
+// ========================================
+// RENDERING
+// ========================================
+function render() {
+  clampAnchor();
+  // Derive all view state from the single anchorDate so views stay in sync.
+  currentYear = anchorDate.getFullYear();
+  currentMonth = anchorDate.getMonth() + 1;
+  selectedWeekStart = getMonday(anchorDate);
+
+  updateMonthLabel();
+  updateViewButtons();
+  updateMonthJump();
+
+  if (currentView === 'month') renderMonth();
+  else if (currentView === 'week') renderWeek();
+}
+
+function updateMonthLabel() {
+  if (currentView === 'month') {
+    document.getElementById('monthLabel').textContent = monthName(currentMonth) + ' ' + currentYear;
+  } else if (currentView === 'week') {
+    const mon = selectedWeekStart || getMonday(new Date(currentYear, currentMonth - 1, 1));
+    const sun = addDays(mon, 6);
+    const mLabel = monthName(mon.getMonth() + 1) + ' ' + mon.getDate();
+    const sLabel = (sun.getMonth() !== mon.getMonth() ? monthName(sun.getMonth() + 1) + ' ' : '') + sun.getDate() + ', ' + sun.getFullYear();
+    document.getElementById('monthLabel').textContent = mLabel + ' – ' + sLabel;
+  }
+}
+
+function updateViewButtons() {
+  document.querySelectorAll('.view-tab').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.view === currentView);
+  });
+}
+
+function updateMonthJump() {
+  const sel = document.getElementById('monthJump');
+  sel.value = currentYear + '-' + currentMonth;
+}
+
+// ========================================
+// MONTH VIEW
+// ========================================
+function renderMonth() {
+  const container = document.getElementById('calBody');
+  const firstDay = new Date(currentYear, currentMonth - 1, 1);
+  const lastDay = new Date(currentYear, currentMonth, 0);
+  const startDow = firstDay.getDay(); // 0=Sun
+  const startOffset = (startDow === 0) ? 6 : startDow - 1; // Monday start
+
+  // Sticky weekday bar (separate element so it stays pinned while scrolling)
+  const dayNames = ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'];
+  let html = '<div class="month-weekbar">';
+  dayNames.forEach(d => { html += '<div class="month-weekbar-cell">' + d + '</div>'; });
+  html += '</div>';
+
+  html += '<div class="month-grid">';
+
+  // Calendar cells
+  const startDate = addDays(firstDay, -startOffset);
+  const totalCells = Math.ceil((startOffset + lastDay.getDate()) / 7) * 7;
+
+  for (let i = 0; i < totalCells; i++) {
+    const cellDate = addDays(startDate, i);
+    const ds = dateStr(cellDate);
+    const isOther = cellDate.getMonth() !== currentMonth - 1;
+    const isTod = isToday(cellDate);
+    const isSubActive = dateHasSubclassEvent(ds);
+
+    let cls = 'month-cell';
+    if (isOther) cls += ' other-month';
+    if (isTod) cls += ' today';
+    if (isSubActive) cls += ' subclass-active';
+
+    html += '<div class="' + cls + '">';
+    html += '<div class="day-num">' + cellDate.getDate() + '</div>';
+
+    // Events (CMU-style text: label line + title)
+    const events = getSummaryEventsForDate(ds);
+    if (events.length > 0) {
+      html += '<div class="event-list">';
+      const maxShow = 3;
+      const selNum = selectedSubclass ? parseInt(selectedSubclass) : null;
+      events.slice(0, maxShow).forEach(ev => {
+        const cls = 'event-item ' + ev.type;
+        // Month view: flag the 1-hour Studio I session (week view already shows it).
+        const mTitle = ev.title === 'Studio I' ? ev.title + ' (1 hr)' : ev.title;
+
+        // When a subclass is selected, show its own studio session in the exact
+        // same format as the week view: "Studio X (Sub Y)" / time / venue.
+        const isSelectedStudio = selNum && ev.time && ev.venue &&
+          ev.subclasses && ev.subclasses.length === 1 && parseInt(ev.subclasses[0]) === selNum;
+        if (isSelectedStudio) {
+          const titleLine = fmtTitle(mTitle) + ' (Sub ' + ev.subclasses[0] + ')';
+          const attr = titleLine + ' · ' + ev.time + ' · ' + ev.venue;
+          html += '<div class="' + cls + '" title="' + escapeHtml(attr) + '">';
+          html += '<span class="event-title">' + escapeHtml(titleLine) + '</span>';
+          html += '<span class="event-line">' + escapeHtml(ev.time) + '</span>';
+          html += '<span class="event-line">' + escapeHtml(ev.venue) + '</span>';
+          html += '</div>';
+          return;
+        }
+
+        // Subclass numbers for this event (sorted).
+        let subStr = '';
+        if (!ev.fullText && ev.subclasses && ev.subclasses.length > 0) {
+          subStr = ev.subclasses.slice()
+            .sort((a, b) => String(a).localeCompare(String(b), undefined, { numeric: true }))
+            .join(', ');
+        }
+        const titleAttr = mTitle + (subStr ? ' — Sub: ' + subStr : '');
+        html += '<div class="' + cls + '" title="' + escapeHtml(titleAttr) + '">';
+        if (ev.link) {
+          html += '<a class="event-title event-link" href="' + escapeHtml(ev.link) + '" target="_blank" rel="noopener" onclick="event.stopPropagation()">' + escapeHtml(fmtTitle(mTitle)) + '</a>';
+        } else {
+          html += '<span class="event-title">' + escapeHtml(fmtTitle(mTitle)) + '</span>';
+        }
+        if (subStr) html += '<span class="event-subs">Sub: ' + escapeHtml(subStr) + '</span>';
+        html += '</div>';
+      });
+      if (events.length > maxShow) {
+        html += '<div class="more-events">+' + (events.length - maxShow) + ' more</div>';
+      }
+      html += '</div>';
+    }
+
+    html += '</div>';
+  }
+
+  html += '</div>';
+  container.innerHTML = html;
+}
+
+function escapeHtml(str) {
+  return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// Keep "Studio" glued to its numeral so a wrap breaks as "Project" / "Studio I",
+// never "Studio" / "I". Uses a non-breaking space before I/II/.../V.
+function fmtTitle(str) {
+  return str.replace(/Studio (?=[IVX])/g, 'Studio\u00A0');
+}
+
+// ========================================
+// WEEK VIEW
+// ========================================
+// Column width for one event depends on how many run at the same time:
+function renderWeek() {
+  const container = document.getElementById('calBody');
+  const monday = selectedWeekStart || getMonday(new Date(currentYear, currentMonth - 1, 1));
+  const SLOT = 60;       // px per hour
+  const GAP = 7;         // small vertical gap left below each block
+  const TIMECOL = 66;    // width of the left time axis
+  const CARD_GAP = 12;   // px between neighboring simultaneous cards (~2 chars)
+  const TRAIL = 6;       // small gap between last card and the column edge
+  const INSET = 3;       // left inset of each row
+
+  // Estimate a card's rendered width so all cards in a day can share one width.
+  // Title and "(Sub Y)" sit on one line; width = widest line.
+  // Padding here mirrors the CSS: left 8 + right 22 + 3 border ≈ 33px.
+  const estCardWidth = ev => {
+    const subId = (ev.subclasses && ev.subclasses.length === 1) ? ev.subclasses[0] : null;
+    const titleLine = fmtTitle(ev.title) + (subId ? ' (Sub ' + subId + ')' : '');
+    const titlePx = titleLine.length * 6.0;                                   // bold title
+    const metaPx = Math.max((ev.time || '').length, (ev.venue || '').length) * 5.2;
+    return Math.ceil(Math.max(titlePx, metaPx)) + 33;                         // + padding+border
+  };
+
+  // Build 7 days with their timed events grouped by time slot.
+  const days = [];
+  for (let i = 0; i < 7; i++) days.push(addDays(monday, i));
+
+  let minStart = 24, maxEnd = 0;
+  const dayInfo = days.map(d => {
+    const ds = dateStr(d);
+    const timed = getEventsForDate(ds).filter(e => !e.allDay && e.time);
+
+    // Parse start/end and assign each event to a non-overlapping column.
+    const parsed = timed.map(ev => {
+      const m = ev.time.match(/(\d{1,2}):(\d{2})\s*-\s*(\d{1,2}):(\d{2})/);
+      const s = m ? +m[1] + (+m[2]) / 60 : 0;
+      const e = m ? +m[3] + (+m[4]) / 60 : s + 1;
+      return { ev, s, e, col: 0 };
+    });
+    // Order by start time; lectures win ties so they land in the left column.
+    parsed.sort((a, b) => a.s - b.s || ((b.ev.type === 'lecture') - (a.ev.type === 'lecture')));
+    const colEnds = [];
+    parsed.forEach(x => {
+      let col = -1;
+      for (let i = 0; i < colEnds.length; i++) { if (colEnds[i] <= x.s + 1e-9) { col = i; break; } }
+      if (col === -1) { col = colEnds.length; colEnds.push(x.e); } else colEnds[col] = x.e;
+      x.col = col;
+    });
+    const nCols = Math.max(colEnds.length, 1);
+
+    // One uniform card width per day (so Sub 1 lines up with Sub 10+).
+    let cardW = 0;
+    timed.forEach(ev => { const w = estCardWidth(ev); if (w > cardW) cardW = w; });
+    const width = timed.length
+      ? INSET + nCols * cardW + (nCols - 1) * CARD_GAP + TRAIL
+      : 150;
+
+    // Track earliest/latest hours across the week to trim the axis.
+    parsed.forEach(x => { if (x.s < minStart) minStart = x.s; if (x.e > maxEnd) maxEnd = x.e; });
+
+    return { date: d, ds, parsed, width, cardW };
+  });
+
+  // Trim the visible hour range to actual events (fallback to a slim window).
+  // Always show the full teaching day (9:00–19:00) even on light weeks.
+  const startHour = maxEnd === 0 ? 9 : Math.min(9, Math.floor(minStart));
+  const endHour   = maxEnd === 0 ? 19 : Math.max(19, Math.ceil(maxEnd));
+  const rows = endHour - startHour;
+
+  // Variable-width day columns: busy days widen and push the rest right
+  // (horizontal scroll to reveal them).
+  const template = TIMECOL + 'px ' + dayInfo.map(di => di.width + 'px').join(' ');
+
+  let html = '<div class="week-grid" style="grid-template-columns:' + template + ';min-width:max-content;">';
+
+  // Header row
+  html += '<div class="week-corner"></div>';
+  dayInfo.forEach(di => {
+    const isTod = isToday(di.date);
+    const isSubActive = dateHasSubclassEvent(di.ds);
+    let cls = 'week-header-cell';
+    if (isTod) cls += ' today';
+    if (isSubActive) cls += ' subclass-active';
+    html += '<div class="' + cls + '">';
+    html += '<div class="wh-day">' + dayOfWeekName(di.date) + '</div>';
+    html += '<div class="wh-date">' + di.date.getDate() + '</div>';
+    html += '</div>';
+  });
+
+  // All-day events row
+  html += '<div class="week-allday-corner">all-day</div>';
+  dayInfo.forEach(di => {
+    const events = getEventsForDate(di.ds).filter(e => e.allDay);
+    html += '<div class="week-allday-cell">';
+    events.forEach(ev => {
+      const inner = ev.link
+        ? '<a href="' + escapeHtml(ev.link) + '" target="_blank" rel="noopener" class="week-allday-link">' + escapeHtml(ev.title) + '</a>'
+        : escapeHtml(ev.title);
+      html += '<div class="week-allday-pill ' + ev.type + '">' + inner + '</div>';
+    });
+    html += '</div>';
+  });
+
+  html += '</div>'; // close week-grid
+
+  // Timed area (same template)
+  html += '<div class="week-timed-area" style="grid-template-columns:' + template + ';min-width:max-content;">';
+
+  // Time column
+  html += '<div class="week-timed-time-col">';
+  for (let h = startHour; h < endHour; h++) {
+    const label = (h < 10 ? '0' : '') + h + ':00';
+    html += '<div class="time-label" style="height:' + SLOT + 'px">' + label + '</div>';
+  }
+  html += '</div>';
+
+  // Day columns: each event absolutely placed by start time (top) and column
+  // (left); lectures occupy the left column when simultaneous with a studio.
+  dayInfo.forEach(di => {
+    html += '<div class="week-timed-day-col" style="min-height:' + (rows * SLOT) + 'px">';
+
+    // Grid lines
+    for (let h = 0; h < rows; h++) html += '<div class="time-slot-line" style="height:' + SLOT + 'px"></div>';
+
+    di.parsed.forEach(x => {
+      const ev = x.ev;
+      const top = (x.s - startHour) * SLOT;
+      const minH = Math.max((x.e - x.s) * SLOT - GAP, 34);
+      const left = INSET + x.col * (di.cardW + CARD_GAP);
+      const subId = (ev.subclasses && ev.subclasses.length === 1) ? ev.subclasses[0] : null;
+      const titleLine = fmtTitle(ev.title) + (subId ? ' (Sub ' + subId + ')' : '');
+      html += '<div class="week-event-card ' + ev.type + '" style="top:' + top + 'px;min-height:' + minH
+            + 'px;left:' + left + 'px;width:' + di.cardW + 'px">';
+      html += '<div class="week-event-title">' + escapeHtml(titleLine) + '</div>';
+      html += '<div class="week-event-line">' + escapeHtml(ev.time) + '</div>';
+      if (ev.venue) html += '<div class="week-event-line">' + escapeHtml(ev.venue) + '</div>';
+      html += '</div>';
+    });
+
+    html += '</div>';
+  });
+
+  html += '</div>'; // close week-timed-area
+
+  container.innerHTML = html;
+}
+
+// ========================================
+// NAVIGATION & INTERACTION
+// ========================================
+function setView(v) {
+  // Only change the view; anchorDate is untouched so the position is kept.
+  currentView = v;
+  render();
+}
+
+function navPrev() {
+  if (currentView === 'month') anchorDate = addMonths(anchorDate, -1);
+  else if (currentView === 'week') anchorDate = addDays(anchorDate, -7);
+  render();
+}
+
+function navNext() {
+  if (currentView === 'month') anchorDate = addMonths(anchorDate, 1);
+  else if (currentView === 'week') anchorDate = addDays(anchorDate, 7);
+  render();
+}
+
+function onMonthJump() {
+  const val = document.getElementById('monthJump').value;
+  const [y, m] = val.split('-').map(Number);
+  anchorDate = new Date(y, m - 1, 1);
+  render();
+}
+
+function onSubclassChange() {
+  selectedSubclass = document.getElementById('subclassSelect').value;
+  render();
+}
+
+// ========================================
+// INIT
+// ========================================
+// On page load (refresh), anchor every view to today's date.
+// Switching between Week/Month afterward preserves the position
+// because anchorDate is only changed by navigation, not by setView.
+anchorDate = new Date(TODAY);
+populateSubclassSelect();
+render();
+</script>
+</body>
+</html>

@@ -1,0 +1,3535 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <title>AILT1001 | HKU</title>
+    <style>
+        @font-face {
+            font-family: 'Montserrat';
+            font-style: normal;
+            font-weight: 800;
+            font-display: swap;
+            src: url('fonts/montserrat-latin-800-normal.woff2') format('woff2');
+        }
+
+        @font-face {
+            font-family: 'Montserrat';
+            font-style: normal;
+            font-weight: 400;
+            font-display: swap;
+            src: url('fonts/montserrat-latin-400-normal.woff2') format('woff2');
+        }
+
+        :root {
+            --hku-blue: #004a8f;
+            --hku-green: #0f9b4c;
+            --text: #0f172a;
+            --muted: #475569;
+            --bg: #f8fafc;
+            --card: #ffffff;
+            --border: #e2e8f0;
+            /* assessment pie palette: cyan -> HKU blue -> violet */
+            --c-part: #0891b2;
+            --c-group: #004a8f;
+            --c-final: #6d28d9;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        html {
+            scroll-behavior: auto;
+            scroll-padding-top: var(--nav-h, 74px);
+            scrollbar-gutter: stable;
+        }
+
+        body {
+            font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.6;
+        }
+
+        a { color: var(--hku-blue); text-decoration: none; }
+        a:hover { text-decoration: underline; }
+
+        header {
+            position: fixed;
+            top: 0; left: 0; right: 0;
+            z-index: 50;
+            background: transparent;
+            border-bottom: 1px solid transparent;
+            transition: background 0.35s ease, border-color 0.35s ease, box-shadow 0.35s ease;
+        }
+        header.scrolled {
+            background: rgba(255, 255, 255, 0.94);
+            -webkit-backdrop-filter: blur(8px);
+            backdrop-filter: blur(8px);
+            border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+            box-shadow: 0 2px 14px rgba(0, 0, 0, 0.08);
+        }
+        /* While the mobile menu is open, drop the header's backdrop-filter so it
+           doesn't become the containing block that clips the fixed drawer. */
+        body.nav-open header, body.nav-open header.scrolled {
+            -webkit-backdrop-filter: none;
+            backdrop-filter: none;
+        }
+
+        /* Single-page views: only the active view's blocks are shown */
+        .view-block { display: none; }
+        .view-block.is-visible { display: block; }
+        /* clear the fixed nav on click-only views and on #hash jumps into Home */
+        .view-block[data-view="enrollment"].is-visible,
+        .view-block[data-view="schedule"].is-visible,
+        .view-block[data-view="contact"].is-visible,
+        .view-block[data-view="faq"].is-visible { padding-top: 0; }
+        #about, #assessment { scroll-margin-top: var(--nav-h, 74px); }
+
+        /* Section banner: HKU image with a navy title block (enrolment/schedule/contact/faq) */
+        .section-banner {
+            position: relative;
+            width: 100%;
+            height: 330px;
+            margin-bottom: 3.25rem;
+        }
+        .section-banner::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            z-index: 0;
+            background-image: linear-gradient(rgba(0,0,0,0.09), rgba(0,0,0,0.23)), url('img/home/hku.jpg');
+            background-size: cover;
+            background-position: center 35%;
+            filter: brightness(1.25);
+        }
+        .section-banner-inner {
+            position: relative;
+            z-index: 1;
+            max-width: 1100px;
+            height: 100%;
+            margin: 0 auto;
+            padding: 0 1.25rem;
+        }
+        .section-banner-caption {
+            position: absolute;
+            left: 1.25rem;
+            bottom: -1.75rem;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+        }
+        .section-crumb {
+            display: inline-block;
+            background: #1b3c73;
+            color: #ffffff;
+            font-size: 0.85rem;
+            font-weight: 600;
+            padding: 0.4rem 1rem;
+        }
+        .section-crumb a { color: #ffffff; text-decoration: underline; text-underline-offset: 2px; cursor: pointer; }
+        .section-crumb a:hover { color: #dbe7f2; }
+        .section-banner-title {
+            display: inline-block;
+            background: #02206a;
+            color: #ffffff;
+            font-size: 1.7rem;
+            font-weight: 800;
+            line-height: 1.2;
+            padding: 0.7rem 1.5rem;
+            margin: 0;
+            box-shadow: 0 6px 18px rgba(2, 32, 106, 0.25);
+        }
+        @media (max-width: 768px) {
+            .section-banner { height: 242px; margin-bottom: 3rem; }
+            .section-banner-title { font-size: 1.3rem; padding: 0.6rem 1.1rem; }
+            .section-crumb { font-size: 0.78rem; }
+        }
+
+        /* Inline "Enrol Now" link at the end of the About paragraph — highlighted to stand out */
+        .enroll-inline {
+            font-weight: 700;
+            color: var(--hku-blue);
+            white-space: nowrap;
+            background: linear-gradient(transparent 60%, #ffe28a 60%);
+            padding: 0 0.15em;
+            border-radius: 2px;
+            text-decoration: none;
+            transition: color 0.2s ease, background 0.2s ease;
+        }
+        .enroll-inline:hover { color: #003a70; background: linear-gradient(transparent 45%, #ffd257 45%); text-decoration: none; }
+
+        h2 {
+            font-family: inherit;
+            color: #02206a;
+            font-weight: 800;
+        }
+        h2::after {
+            content: '';
+            display: block;
+            width: 100%;
+            height: 3px;
+            border-radius: 3px;
+            background: #f0a500;
+            margin-top: 0.6rem;
+        }
+
+        .nav {
+            margin: 0 auto;
+            padding: 0.9rem 2rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1.5rem;
+        }
+
+        .nav-logo-wrap {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            flex-shrink: 0;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 1.5rem;
+            flex-wrap: nowrap;
+            align-items: center;
+            justify-content: flex-end;
+        }
+
+        .nav-links a {
+            padding: 0.5rem 0.75rem;
+            border-radius: 6px;
+            color: #ffffff;
+            font-weight: 500;
+            font-size: 0.92rem;
+            white-space: nowrap;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.22);
+            transition: background 0.2s, color 0.2s;
+        }
+
+        .nav-links a:hover {
+            background: rgba(255, 255, 255, 0.15);
+            color: #ffffff;
+            text-decoration: none;
+        }
+
+        /* Scrolled / non-home state: dark text on the light bar */
+        header.scrolled .nav-links a { color: #1a1a1a; text-shadow: none; }
+        header.scrolled .nav-links a:hover { background: rgba(0, 0, 0, 0.06); }
+
+        /* Tiny "Staff Only" footnote on the Course Materials link */
+        .nav-links a.nav-materials {
+            position: relative;
+        }
+
+        .nav-materials .staff-only {
+            position: absolute;
+            right: 0.75rem;          /* align right edge with the end of the text ("s") */
+            bottom: 0.02rem;
+            font-size: 0.55rem;      /* ~10% larger */
+            font-weight: 600;
+            letter-spacing: 0.03em;
+            line-height: 1;
+            color: #fcd34d;
+            pointer-events: none;
+        }
+
+        /* Scrollspy: link for the section currently in view */
+        .nav-links a.active {
+            background: rgba(255, 255, 255, 0.22);
+            box-shadow: inset 0 -2px 0 #ffffff;
+        }
+
+        /* Shanghai promotional link */
+        .nav-links a.nav-shanghai {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            color: #f0a500;
+            font-weight: 700;
+        }
+        .nav-links a.nav-shanghai:hover { background: rgba(255, 255, 255, 0.15); color: #ffbf3f; }
+        header.scrolled .nav-links a.nav-shanghai { color: #b7791f; }
+        header.scrolled .nav-links a.nav-shanghai:hover { background: rgba(0, 0, 0, 0.06); }
+
+        .nav-shanghai svg {
+            flex-shrink: 0;
+        }
+
+        .nav-logo {
+            height: 44px;
+            width: auto;
+            display: block;
+            cursor: pointer;
+            transition: filter 0.35s ease;
+        }
+
+        /* Scrolled / non-home nav state: active link, staff badge, and (white) logo → dark */
+        header.scrolled .nav-links a.active {
+            background: rgba(0, 74, 143, 0.10);
+            box-shadow: inset 0 -2px 0 var(--hku-blue);
+            color: var(--hku-blue);
+        }
+        header.scrolled .nav-materials .staff-only { color: #b7791f; }
+        header.scrolled .nav-logo { filter: brightness(0); }
+
+        /* Hamburger + close buttons — hidden on desktop, shown when the nav collapses */
+        .nav-toggle, .nav-close {
+            display: none;
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            padding: 0;
+            color: #ffffff;
+        }
+        .nav-toggle svg { width: 30px; height: 30px; display: block; }
+        .nav-close svg { width: 28px; height: 28px; display: block; }
+        header.scrolled .nav-toggle { color: #1a1a1a; }
+        .nav-toggle {
+            border: 1.5px solid rgba(255, 255, 255, 0.7);
+            border-radius: 8px;
+            padding: 0.25rem;
+        }
+        header.scrolled .nav-toggle { border-color: rgba(0, 0, 0, 0.25); }
+
+        @media (max-width: 1280px) {
+            /* Collapse the inline nav into a full-screen overlay menu */
+            .nav-toggle { display: inline-flex; }
+            .nav-links {
+                position: fixed;
+                top: 0;
+                right: 0;
+                bottom: 0;
+                left: auto;
+                height: 100dvh;
+                width: 50vw;
+                min-width: 280px;
+                z-index: 60;
+                flex-direction: column;
+                justify-content: flex-start;
+                align-items: stretch;
+                gap: 0;
+                background: #0a0f1a;
+                padding: 5rem 1.5rem 2rem;
+                overflow-y: auto;
+                box-shadow: -8px 0 24px rgba(0, 0, 0, 0.35);
+                display: none;
+            }
+            .nav-links.open { display: flex; }
+            .nav-close {
+                display: inline-flex;
+                position: absolute;
+                top: 1.25rem;
+                right: 1.25rem;
+                color: #ffffff;
+                border: 1.5px solid rgba(255, 255, 255, 0.5);
+                border-radius: 8px;
+                padding: 0.25rem;
+            }
+            /* Stacked items with dividers (dark overlay) */
+            .nav-links a {
+                display: block;
+                color: #ffffff !important;
+                text-shadow: none !important;
+                font-size: 1.15rem;
+                font-weight: 600;
+                padding: 1.15rem 0.25rem;
+                border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+                border-radius: 0;
+                width: 100%;
+                white-space: normal;
+                overflow-wrap: anywhere;
+            }
+            .nav-links a:hover { background: rgba(255, 255, 255, 0.06) !important; }
+            .nav-links a.active { background: none !important; box-shadow: inset 3px 0 0 var(--gold); padding-left: 0.9rem; }
+            /* Neutralise the desktop pill/badge styling inside the overlay */
+            .nav-links a.nav-shanghai { color: #f0a500 !important; background: none; padding: 1.15rem 0.25rem; }
+            .nav-materials .staff-only {
+                position: static; color: #fcd34d; font-size: 0.7rem; margin-left: 0.5rem;
+            }
+            body.nav-open { overflow: hidden; }
+        }
+
+        /* Immersive cinematic hero: title overlaid on the poster carousel.
+           The sides are filled with a blurred copy of the current photo so the
+           framing feels part of the image rather than hard black bars. */
+        .hero {
+            position: relative;
+            background: #000000;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .hero-content {
+            position: absolute;
+            inset: 0;
+            z-index: 3;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 0 1.5rem;
+            pointer-events: none; /* keep carousel controls/dots clickable */
+        }
+
+        .hero-content h1 {
+            font-family: 'Montserrat', "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            color: #ffffff;
+            font-size: 2.7rem;
+            font-weight: 800;
+            line-height: 1.2;
+            margin: 0;
+            white-space: nowrap;
+            text-shadow: 0 0.125rem 0.5rem rgba(0, 0, 0, 0.55),
+                         0 0.0625rem 0.125rem rgba(0, 0, 0, 0.45);
+        }
+
+        /* Hero eyebrow (yellow) above the title */
+        .hero-eyebrow {
+            display: inline-block;
+            color: #f0a500;
+            font-size: 0.85rem;
+            font-weight: 700;
+            letter-spacing: 0.14em;
+            text-transform: uppercase;
+            margin-bottom: 1.1rem;
+            text-shadow: 0 1px 6px rgba(0, 0, 0, 0.45);
+        }
+
+        .carousel-container {
+            position: relative;
+            width: 100%;
+            height: 100dvh;  /* full viewport; the fixed transparent nav overlays the top */
+            max-height: none;
+            margin: 0;
+            overflow: hidden;
+        }
+
+        /* Scrim over the photos so the overlaid title stays readable */
+        .carousel-container::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            z-index: 2;
+            pointer-events: none;
+            background: linear-gradient(to bottom,
+                rgba(0, 0, 0, 0.18),
+                rgba(0, 0, 0, 0.03) 45%,
+                rgba(0, 0, 0, 0.22));
+        }
+
+        /* "Project Exhibition" caption pinned to the carousel */
+        .carousel-caption {
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            bottom: 5rem;            /* sits above the arrows + dots row */
+            z-index: 3;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            background: rgba(255, 255, 255, 0.14);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            color: #ffffff;
+            font-size: 0.8rem;
+            font-weight: 600;
+            letter-spacing: 0.03em;
+            padding: 0.4rem 0.9rem;
+            border-radius: 999px;
+            -webkit-backdrop-filter: blur(6px);
+            backdrop-filter: blur(6px);
+        }
+
+        /* CiC accreditation seal, top-right corner of the hero */
+        .hero-cic-seal {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.45rem;
+            background: transparent;
+            border: none;
+            border-radius: 999px;
+            padding: 0.2rem 0.7rem 0.2rem 0.28rem;
+            box-shadow: none;
+            text-decoration: none;
+            transition: transform 0.15s ease;
+        }
+        .hero-cic-seal:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 0.4rem 1.1rem rgba(0, 0, 0, 0.32);
+        }
+        .hero-cic-seal img { width: 34px; height: 34px; display: block; }
+        .hero-cic-seal span {
+            font-size: 0.72rem; font-weight: 700; color: #ffd76a; line-height: 1.15; text-align: left;
+            text-shadow: 0 1px 3px rgba(0, 0, 0, 0.35);
+        }
+        .hero-cic-seal span small {
+            display: block; font-weight: 500; color: rgba(255, 255, 255, 0.9); font-size: 0.66rem;
+        }
+        /* Scrolled / solid nav: CiC text turns dark */
+        header.scrolled .hero-cic-seal span { color: #b7791f; text-shadow: none; }
+        header.scrolled .hero-cic-seal span small { color: #4b5563; }
+        /* Hover underline colour matches the state (white on top, amber when scrolled) */
+        .hero-cic-seal:hover { text-decoration: underline; text-decoration-color: #ffffff; }
+        header.scrolled .hero-cic-seal:hover { text-decoration-color: #1a1a1a; }
+
+        /* CiC callout inside the About section (Option A) */
+        .cic-callout {
+            display: flex;
+            gap: 1rem;
+            align-items: flex-start;
+            background: #fffbeb;
+            border: 1px solid #fde68a;
+            border-radius: 10px;
+            padding: 1rem 1.15rem;
+            margin: 25px 0 1.25rem;
+        }
+        .cic-callout img { width: 72px; height: 72px; flex-shrink: 0; }
+        .cic-callout p { margin: 0; font-size: 0.92rem; color: #4b3a13; }
+        .cic-callout p strong { color: #b45309; }
+        .cic-callout p a { color: #b45309; font-weight: 600; text-decoration: none; }
+        .cic-callout p a:hover { text-decoration: underline; }
+        @media (max-width: 640px) {
+            .cic-callout { flex-direction: column; align-items: center; text-align: center; }
+            .hero-cic-seal { padding: 0.3rem; }
+        }
+
+        /* Wide screens: slightly larger title */
+        @media (min-width: 1200px) {
+            .hero-content h1 { font-size: 3.35rem; letter-spacing: 0.01em; }
+        }
+
+        .carousel-wrapper {
+            display: flex;
+            transition: transform 0.5s ease-in-out;
+            width: 600%;
+            height: 100%;
+        }
+
+        .carousel-slide {
+            width: 16.6667%;
+            height: 100%;
+            flex-shrink: 0;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .carousel-slide img {
+            position: relative;
+            z-index: 1;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+            filter: brightness(0.86);   /* lightened ~20% to match the SH page */
+        }
+
+        /* Arrows + dots grouped in one centered row at the bottom */
+        .carousel-nav {
+            position: absolute;
+            left: 50%;
+            bottom: 1.5rem;
+            transform: translateX(-50%);
+            z-index: 3;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .carousel-controls {
+            position: static;
+            transform: none;
+            width: 33px;
+            height: 33px;
+            border-radius: 50%;
+            border: 1px solid rgba(255, 255, 255, 0.65);
+            background: rgba(255, 255, 255, 0.12);
+            -webkit-backdrop-filter: blur(6px);
+            backdrop-filter: blur(6px);
+            color: #ffffff;
+            font-size: 1.1rem;
+            line-height: 1;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: none;
+            transition: background 0.2s, border-color 0.2s;
+        }
+
+        .carousel-controls:hover {
+            background: rgba(255, 255, 255, 0.28);
+            border-color: #ffffff;
+            box-shadow: none;
+        }
+
+        .carousel-dots {
+            position: static;
+            transform: none;
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .carousel-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.5);
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .carousel-dot.active {
+            background: white;
+            width: 24px;
+            border-radius: 5px;
+        }
+
+        table { width: 100%; border-collapse: collapse; }
+        th, td {
+            padding: 0.75rem;
+            border: 1px solid var(--border);
+            text-align: left;
+        }
+        th { background: #f1f5f9; font-weight: 700; }
+        tr:nth-child(even) { background: #f8fafc; }
+
+        .band {
+            width: 100%;
+            padding: 2.5rem 0;
+        }
+
+        /* Tighter gap between the stacked Home blocks (About / Assessment) */
+        .band:has(#about) { padding-bottom: 1.5rem; }
+        .band:has(#assessment) { padding-top: 0.5rem; }
+
+        /* Unified section background across all views (matches SH page) */
+        /* Unified section background (matches body --bg) */
+        .band-light, .band-surface, .band-soft { background: #f8fafc; }
+
+        .band-inner {
+            max-width: 1100px;
+            margin: auto;
+            margin-top: 1rem;
+            margin-bottom: 0.5rem;
+            padding: 0 1.25rem;
+        }
+
+        /* Tablet/mobile: generous side breathing room for the content column
+           (desktop keeps its centred 1100px width). */
+        @media (max-width: 1280px) {
+            .band-inner,
+            .section-banner-inner {
+                max-width: none;
+                padding-left: clamp(1.5rem, 7vw, 5rem);
+                padding-right: clamp(1.5rem, 7vw, 5rem);
+            }
+            .section-banner-caption { left: clamp(1.5rem, 7vw, 5rem); }
+        }
+
+        section { width: 100%; }
+        section h2 { margin-bottom: 0.85rem; font-size: 1.73rem; }
+        .section-lead { color: var(--muted); margin-bottom: 1.25rem; }
+
+        .footer {
+            padding: 2rem 1.25rem 2rem;
+            text-align: center;
+            border-top: 1px solid var(--border);
+            color: white;
+            background: #004a8f;
+        }
+
+        .footer-social {
+            display: flex;
+            justify-content: center;
+            gap: 0.75rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .footer-social-icon {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            background: #ffffff;
+            overflow: hidden;
+            transition: transform 0.15s ease, box-shadow 0.15s ease;
+        }
+
+        .footer-social-icon:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+        }
+
+        .footer-social-icon img {
+            width: 16px;
+            height: 16px;
+            object-fit: contain;
+        }
+
+        /* Enrollment Procedures Styles */
+        .enrollment-procedures {
+            max-width: 1100px;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .procedure-step {
+            display: flex;
+            gap: 1.25rem;
+            align-items: flex-start;
+            position: relative;
+        }
+
+        /* vertical connector line running through the circles */
+        .procedure-step::after {
+            content: '';
+            position: absolute;
+            left: 15px;           /* centre of the 32px circle */
+            top: 32px;            /* start at the bottom of this circle */
+            bottom: -1rem;        /* reach into the next step's circle */
+            width: 2px;
+            background: #b8cfe4;
+        }
+
+        /* last step: line extends to the bottom edge of the 5th block */
+        .procedure-step:last-child::after {
+            bottom: 0;
+        }
+
+        .step-number {
+            position: relative;
+            z-index: 1;
+            width: 32px;
+            height: 32px;
+            background: #ffffff;
+            color: #004a8f;
+            border: 2px solid #004a8f;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 0.9rem;
+            flex-shrink: 0;
+            transition: color 0.25s ease 0.15s, border-color 0.25s ease;
+        }
+
+        /* deep-blue fill that sweeps clockwise from the top middle */
+        .step-number::before {
+            content: '';
+            position: absolute;
+            inset: -2px;
+            border-radius: 50%;
+            background: conic-gradient(from 0deg, #004a8f 0deg, #004a8f 0deg, transparent 0deg);
+            z-index: -1;
+            transition: background 0s;
+        }
+
+        .procedure-step:hover .step-number,
+        .procedure-step:focus-within .step-number {
+            color: #ffffff;
+            border-color: #004a8f;
+        }
+
+        .procedure-step:hover .step-number::before,
+        .procedure-step:focus-within .step-number::before {
+            animation: step-fill 0.1s linear forwards;
+        }
+
+        @keyframes step-fill {
+            0%   { background: conic-gradient(from 0deg, #004a8f 0deg, #004a8f 0deg, transparent 0deg); }
+            25%  { background: conic-gradient(from 0deg, #004a8f 0deg, #004a8f 90deg, transparent 90deg); }
+            50%  { background: conic-gradient(from 0deg, #004a8f 0deg, #004a8f 180deg, transparent 180deg); }
+            75%  { background: conic-gradient(from 0deg, #004a8f 0deg, #004a8f 270deg, transparent 270deg); }
+            100% { background: conic-gradient(from 0deg, #004a8f 0deg, #004a8f 360deg, transparent 360deg); }
+        }
+
+        .step-content {
+            position: relative;
+            flex: 1;
+            background: #ffffff;
+            border: 1px solid #e5e7eb;
+            border-radius: 12px;
+            padding: 1.1rem 1.3rem;
+            box-shadow: 0 1px 3px rgba(16, 42, 67, 0.06);
+            transition: box-shadow 0.2s ease, border-color 0.2s ease;
+        }
+        .procedure-step:hover .step-content {
+            border-color: #c3d5ea;
+            box-shadow: 0 8px 20px rgba(16, 42, 67, 0.10);
+        }
+
+        .step-content h4 {
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: #1f2937;
+            margin: 0 0 0.5rem 0;
+            line-height: 1.4;
+            padding-right: 4rem;
+        }
+
+        .step-content p {
+            font-size: 1rem;
+            color: #4b5563;
+            line-height: 1.5;
+            margin: 0 0 0.25rem 0;
+        }
+        .step-content p:last-child { margin-bottom: 0; }
+
+        .step-done {
+            position: absolute;
+            top: 1.1rem;
+            right: 1.3rem;
+            background: #dcfce7;
+            color: #166534;
+            font-size: 0.72rem;
+            font-weight: 700;
+            padding: 0.2rem 0.6rem;
+            border-radius: 999px;
+        }
+
+        .visit-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.25rem;
+            color: #2563eb;
+            text-decoration: none;
+            font-weight: normal;
+        }
+
+        .visit-link:hover {
+            text-decoration: underline;
+        }
+
+        .tutorial-enrollment-alert {
+            background: #fffbeb;
+            border: 1px solid #fde68a;
+            border-left: 4px solid #f59e0b;
+            border-radius: 10px;
+            padding: 1rem 1.2rem;
+            display: flex;
+            gap: 1rem;
+            align-items: flex-start;
+            margin-top: 0.85rem;
+        }
+
+        .alert-content h4 {
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: #78350f;
+            margin: 0 0 0.75rem 0;
+        }
+
+        .enrollment-dates div {
+            font-size: 1rem;
+            color: #92400e;
+            margin-bottom: 0.5rem;
+        }
+
+        .enrollment-dates ul {
+            font-size: 1rem;
+        }
+
+        .enrollment-dates ul li {
+            font-size: 1rem;
+        }
+
+        .enrollment-dates div:last-child {
+            margin-bottom: 0;
+        }
+
+        .enrollment-dates strong {
+            font-weight: bold;
+        }
+
+        /* Help Resources Section Styles */
+        .help-resources-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            max-width: 1100px;
+            margin: 0 auto;
+        }
+
+        .help-block, .resources-block {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        .help-block h3, .resources-block h3 {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: #374151;
+            margin: 0 0 1rem 0;
+        }
+
+        .help-block ul, .resources-block ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .help-block li, .resources-block li {
+            margin-bottom: 0.5rem;
+            color: #4b5563;
+            font-size: 1rem;
+        }
+
+        .help-block li:last-child, .resources-block li:last-child {
+            margin-bottom: 0;
+        }
+
+        .help-block a, .resources-block a {
+            color: #2563eb;
+            text-decoration: none;
+        }
+
+        .help-block a:hover, .resources-block a:hover {
+            text-decoration: underline;
+        }
+
+        /* Schedule Section Styles */
+        .schedule-container {
+            background: white;
+            border: 1px solid #e5e5e5;
+            border-radius: 12px;
+            padding: 2rem;
+            box-shadow: 0px 1px 2px 0px rgba(0,0,0,0.1), 0px 1px 3px 0px rgba(0,0,0,0.1);
+            max-width: 1100px;
+            margin: 0 auto;
+        }
+
+        .calendar-embed {
+            max-width: 1300px;
+            margin: 0 auto 2.5rem;
+        }
+
+        .calendar-embed iframe {
+            display: block;
+            width: 100%;
+            height: 92vh;
+            min-height: 520px;
+            border: 1px solid #e5e5e5;
+            box-shadow: 0px 1px 2px 0px rgba(0,0,0,0.1), 0px 1px 3px 0px rgba(0,0,0,0.1);
+        }
+
+        @media (max-width: 768px) {
+            .calendar-embed iframe { height: 92vh; min-height: 440px; }
+        }
+
+        .schedule-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 0;
+            border: 1px solid #d1d5db;
+        }
+
+        .schedule-table th {
+            background: #f3f4f6;
+            padding: 0.75rem;
+            border: 1px solid #d1d5db;
+            text-align: left;
+            font-weight: bold;
+            font-size: 1rem;
+        }
+
+        .schedule-table td {
+            padding: 0.75rem;
+            border: 1px solid #d1d5db;
+            font-size: 1rem;
+        }
+
+        /* Keep the Time column on a single line; venue columns absorb the wrapping */
+        .schedule-table th:nth-child(3),
+        .schedule-table td:nth-child(3) {
+            white-space: nowrap;
+        }
+
+        .schedule-table .nowrap {
+            white-space: nowrap;
+        }
+
+        .schedule-table .subclass-cell {
+            font-weight: 600;
+            text-align: left;
+        }
+        .subclass-pill {
+            display: inline-block;
+            padding: 0.3rem 0.85rem;
+            border-radius: 8px;
+            font-weight: 700;
+            font-size: 0.95rem;
+            background: #e3edfb;
+            color: #1565c0;
+            white-space: nowrap;
+        }
+        .subclass-pill--sh {
+            background: #fdf3e3;
+            color: #8a4b1f;
+        }
+
+        .schedule-table .sem-cell {
+            text-align: center;
+            vertical-align: middle;
+        }
+
+        /* Shade the second subclass of each lecture time (rest stay white).
+           Reset the global zebra striping so both semesters look identical. */
+        .schedule-table tbody tr { background: #ffffff; }
+        .schedule-table tbody tr.row-alt td { background: #f3f4f6; }
+
+        /* Lecture heading + semester toggle */
+        .lecture-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1rem;
+            flex-wrap: wrap;
+            margin-bottom: 1.25rem;
+        }
+
+        .sem-toggle {
+            display: inline-flex;
+            background: #eef1f5;
+            border-radius: 999px;
+            padding: 3px;
+        }
+
+        .sem-btn {
+            border: none;
+            background: none;
+            padding: 0.3rem 0.7rem;
+            font-size: 0.78rem;
+            font-weight: 600;
+            color: var(--muted);
+            border-radius: 999px;
+            cursor: pointer;
+            transition: all 0.15s;
+            font-family: inherit;
+            white-space: nowrap;
+        }
+        .sem-btn:hover { color: var(--hku-blue); }
+        .sem-btn.active { background: var(--hku-blue); color: #fff; }
+
+        /* Semester filtering: show only the selected view (default Semester 1) */
+        .schedule-table tbody tr { display: none; }
+        .schedule-table.view-1 tbody tr[data-sem="1"] { display: table-row; }
+        .schedule-table.view-2 tbody tr[data-sem="2"] { display: table-row; }
+        .schedule-table.view-summer tbody tr[data-sem="summer"] { display: table-row; }
+
+        .policy-section {
+            margin: 2rem 0;
+        }
+
+        .special-notice {
+            background: #f0fdf4;
+            border: 1px solid #bbf7d0;
+            border-radius: 8px;
+            padding: 0.75rem 1.5rem;
+            margin: 1.5rem 0;
+        }
+
+        .special-notice p {
+            color: #166534;
+            margin: 0;
+            line-height: 1.4;
+        }
+
+        .policy-section h4 {
+            font-weight: 600;
+            margin: 0 0 1rem 0;
+            font-size: 1rem;
+        }
+
+        .policy-list ul {
+            margin: 0;
+            padding-left: 1.5rem;
+        }
+
+        .policy-list li {
+            margin-bottom: 1rem;
+            line-height: 1.5;
+            color: var(--muted);
+        }
+
+        .policy-list li:last-child {
+            margin-bottom: 0;
+        }
+
+        /* Assessment Section Styles */
+        .assessment-container {
+            background: var(--card);
+            border: 1px solid #e5e7eb;
+            border-radius: 12px;
+            padding: 2rem;
+            box-shadow: 0 12px 30px rgba(15, 23, 42, 0.04);
+            max-width: 1100px;
+            margin: 0 auto;
+        }
+
+        /* ---- Layout: donut rests centred; on selection it docks left
+           and the side panel appears on the right ---- */
+        .pie-side-wrap {
+            position: relative;
+            height: 440px;
+        }
+
+        .pie-col {
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%) scale(1.05); /* resting pie at 105%, text included */
+            transition: left 0.5s ease, transform 0.5s ease;
+            width: 330px;
+            z-index: 1;
+        }
+
+        /* docked: slides left and shrinks slightly, flattening the beam */
+        .pie-side-wrap.active .pie-col {
+            left: 25%;
+            transform: translate(-50%, -50%) scale(0.95);
+        }
+
+        /* connector beam between pie and detail block */
+        .connector {
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .connector path {
+            transition: opacity 0.3s ease;
+        }
+
+        .pie-holder {
+            position: relative;
+            width: 330px;
+            height: 330px;
+            margin: 0 auto;
+            z-index: 1;
+        }
+
+        svg.pie {
+            display: block;
+            overflow: visible;
+            filter: drop-shadow(0 8px 18px rgba(15, 23, 42, 0.16));
+        }
+
+        svg.pie path {
+            cursor: pointer;
+            transition: opacity 0.25s, transform 0.25s, filter 0.2s;
+            transform-origin: 190px 190px; /* pie centre: hover scale grows the slice outward */
+        }
+
+        svg.pie path.hovered:not(.faded) {
+            filter: brightness(1.12) saturate(1.08);
+        }
+
+        /* each slice's callout stretches together with the hovered slice */
+        .callout-item {
+            transform-origin: 190px 190px;
+            transition: transform 0.25s;
+        }
+
+        svg.pie path.faded { opacity: 0.22; }
+
+        .slice-label {
+            font-size: 16px;
+            font-weight: 700;
+            fill: #ffffff;
+            pointer-events: none;
+        }
+
+        .center-title { font-size: 17px; font-weight: 700; fill: var(--text); }
+        .center-pct { font-size: 32px; font-weight: 800; }
+        .center-hint { font-size: 13px; fill: #94a3b8; font-style: italic; }
+
+        /* Callout descriptors: thin leader line from each slice to its label,
+           shown only while the pie rests at the centre */
+        .callout-g {
+            transition: opacity 0.3s ease 0.45s; /* reappear after the pie settles */
+        }
+
+        .callout-g.hidden {
+            transition: opacity 0.2s ease;
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .callout-g polyline {
+            fill: none;
+            stroke-width: 1.5;
+        }
+
+        .callout-g text {
+            font-size: 17.5px;
+            font-weight: 600;
+            fill: var(--text);
+            cursor: pointer;
+        }
+
+        .callout-g text:hover { text-decoration: underline; }
+
+        /* Detail side panel: hidden while the pie rests centred,
+           fades in on the right once a slice is selected */
+        .pie-detail {
+            position: absolute;
+            right: 2%;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 48%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            padding: 1.5rem 1.75rem;
+            border-radius: 12px;
+            border: 1.5px solid var(--border);
+            background: #fafbfd;
+            box-shadow: 0 4px 14px rgba(15, 23, 42, 0.07);
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.25s ease, background 0.3s, border-color 0.3s;
+            z-index: 1;
+        }
+
+        .pie-side-wrap.active .pie-detail {
+            opacity: 1;
+            pointer-events: auto;
+            transition: opacity 0.4s ease 0.2s, background 0.3s, border-color 0.3s;
+        }
+
+        .pie-detail .detail-head {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 0.15rem;
+        }
+
+        .pie-detail h3 { font-size: 1.1rem; margin: 0; }
+
+
+        .pie-detail p, .pie-detail li { color: var(--muted); font-size: 0.95rem; }
+        .pie-detail ul { padding-left: 1.2rem; margin-top: 0.4rem; }
+        .pie-detail li { margin-bottom: 0.5rem; }
+
+        .pie-detail .hint {
+            color: #94a3b8;
+            font-style: italic;
+            font-size: 0.95rem;
+        }
+
+        @media (max-width: 860px) {
+            .pie-side-wrap { height: auto; }
+
+            .pie-col,
+            .pie-side-wrap.active .pie-col {
+                position: static;
+                transform: none;
+                margin: 0 auto;
+                width: min(300px, 72vw);
+            }
+
+            .pie-holder { width: 100%; height: auto; aspect-ratio: 1 / 1; }
+
+            .pie-detail,
+            .pie-side-wrap.active .pie-detail {
+                position: relative; /* keeps the corner-pinned ratio anchored */
+                right: auto;
+                top: auto;
+                transform: none;
+                width: auto;
+                margin-top: 1rem;
+            }
+
+            .pie-side-wrap:not(.active) .pie-detail { display: none; }
+
+            .connector { display: none; } /* beam doesn't translate to stacked layout */
+        }
+
+        /* Small screens: the donut's external callout labels overflow the card,
+           so hide them (in-slice %s + centre total remain; tap a slice for detail)
+           and shrink the donut a little. */
+        @media (max-width: 700px) {
+            .callout-g { display: none; }
+            .pie-col,
+            .pie-side-wrap.active .pie-col { width: min(280px, 70vw); }
+        }
+
+        .important-notice {
+            background: #eff6ff;
+            border-left: 4px solid var(--hku-blue);
+            padding: 1rem 1.5rem;
+            margin: 2.75rem 0 1.5rem;
+        }
+
+        .important-notice .notice-text {
+            color: #1e3a5f;
+            line-height: 1.6;
+            margin: 0;
+        }
+
+        .policy-section-assessment {
+            margin: 2rem 0 0 0;
+        }
+
+        .policy-section-assessment h4 {
+            font-size: 1rem;
+            font-weight: 600;
+            margin: 0 0 1rem 0;
+        }
+
+        .policy-section-assessment p {
+            color: var(--text);
+            margin: 0 0 0.5rem 0;
+        }
+
+        .clo-section {
+            margin-top: 0.5rem;
+            margin-bottom: 2.75rem;
+        }
+
+        .clo-section h4 {
+            color: var(--hku-blue);
+            font-size: 1.25rem;
+            font-weight: 700;
+            margin: 0 0 1rem 0;
+        }
+
+        .clo-list {
+            margin: 0;
+            padding: 0;
+            list-style: none;
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1rem;
+        }
+
+        .clo-card {
+            display: flex;
+            align-items: stretch;
+            background: #ffffff;
+            border: 1px solid #e5e7eb;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(15, 23, 42, 0.05);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .clo-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(15, 23, 42, 0.10);
+        }
+
+        .clo-num {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: flex-start;
+            padding: 1rem 1.1rem;
+            font-size: 2.2rem;
+            font-weight: 800;
+            line-height: 1;
+            color: rgba(255, 255, 255, 0.95);
+            border-right: 1px solid rgba(255, 255, 255, 0.35);
+            flex-shrink: 0;
+            min-width: 92px;
+        }
+
+        .clo-card.c1 .clo-num { background: linear-gradient(135deg, var(--c-part), #06b6d4); }
+        .clo-card.c2 .clo-num { background: linear-gradient(135deg, var(--c-group), #1e6fbd); }
+        .clo-card.c3 .clo-num { background: linear-gradient(135deg, var(--c-final), #8b5cf6); }
+
+        .clo-num small {
+            display: block;
+            font-size: 0.75rem;
+            font-weight: 700;
+            letter-spacing: 0.08em;
+            color: rgba(255, 255, 255, 0.9);
+            margin-bottom: 0.25rem;
+        }
+
+        .clo-text {
+            color: var(--text);
+            line-height: 1.5;
+            font-size: 0.9rem;
+            padding: 1rem 1.25rem;
+            display: flex;
+            align-items: center;
+        }
+
+        @media (max-width: 768px) {
+            .clo-list {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Academic Integrity Section Styles */
+        .academic-integrity-section {
+            background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+            border: 2px solid #f59e0b;
+            border-radius: 12px;
+            padding: 2rem;
+            margin: 1.5rem 0;
+            box-shadow: 0 4px 12px rgba(245, 158, 11, 0.15);
+        }
+
+        .academic-integrity-section h4 {
+            color: #92400e;
+            font-size: 1.25rem;
+            font-weight: 700;
+            margin: 0 0 1.5rem 0;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .academic-integrity-intro {
+            color: #78350f;
+            font-size: 1rem;
+            line-height: 1.7;
+            margin-bottom: 1.5rem;
+            font-weight: 500;
+        }
+
+        .misconduct-list {
+            background: white;
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin: 1.5rem 0;
+            border-left: 4px solid #f59e0b;
+        }
+
+        .misconduct-list h5 {
+            color: #92400e;
+            font-size: 1.05rem;
+            font-weight: 600;
+            margin: 0 0 1rem 0;
+        }
+
+        .misconduct-list ol {
+            margin: 0;
+            padding-left: 1.5rem;
+            counter-reset: misconduct-counter;
+            list-style: none;
+        }
+
+        .misconduct-list ol li {
+            counter-increment: misconduct-counter;
+            position: relative;
+            padding-left: 0.5rem;
+            margin-bottom: 1rem;
+            color: #451a03;
+            line-height: 1.6;
+        }
+
+        .misconduct-list ol li:last-child {
+            margin-bottom: 0;
+        }
+
+        .misconduct-list ol li::before {
+            content: counter(misconduct-counter) ".";
+            position: absolute;
+            left: -1.5rem;
+            font-weight: 700;
+            color: #f59e0b;
+        }
+
+        .misconduct-list ol li strong {
+            color: #92400e;
+            font-weight: 600;
+        }
+
+        .consequences-box {
+            background: #fef2f2;
+            border: 2px solid #ef4444;
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin-top: 1.5rem;
+        }
+
+        .consequences-box h5 {
+            color: #991b1b;
+            font-size: 1.05rem;
+            font-weight: 700;
+            margin: 0 0 1rem 0;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .consequences-box p {
+            color: #7f1d1d;
+            line-height: 1.7;
+            margin: 0;
+        }
+
+        .consequences-box strong {
+            font-weight: 700;
+            color: #991b1b;
+        }
+
+        @media (max-width: 768px) {
+            .academic-integrity-section {
+                padding: 1.5rem;
+            }
+
+            .academic-integrity-section h4 {
+                font-size: 1.1rem;
+            }
+
+            .misconduct-list,
+            .consequences-box {
+                padding: 1.25rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .academic-integrity-section {
+                padding: 1rem;
+            }
+
+            .academic-integrity-section h4 {
+                font-size: 1rem;
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 0.5rem;
+            }
+
+            .academic-integrity-intro {
+                font-size: 0.95rem;
+            }
+
+            .misconduct-list,
+            .consequences-box {
+                padding: 1rem;
+            }
+
+            .misconduct-list h5,
+            .consequences-box h5 {
+                font-size: 1rem;
+            }
+
+            .misconduct-list ol li {
+                font-size: 0.95rem;
+            }
+        }
+
+        /* Support Section Styles */
+        .support-container {
+            max-width: 1100px;
+            margin: 0 auto;
+        }
+
+        .support-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1.25rem;
+            margin: 0 0 2rem;
+        }
+
+        .support-card {
+            background: #ffffff;
+            border: 1px solid #e5e7eb;
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: 0 1px 3px rgba(16, 42, 67, 0.06);
+        }
+
+        .support-card-header {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .support-card-header h4 {
+            font-size: 1rem;
+            font-weight: 600;
+            margin: 0;
+        }
+
+        .support-detail {
+            display: flex;
+            align-items: flex-start;
+            gap: 0.75rem;
+            margin-bottom: 1rem;
+        }
+
+        .support-detail:last-child {
+            margin-bottom: 0;
+        }
+
+        .support-detail-icon {
+            width: 24px;
+            height: 24px;
+            flex-shrink: 0;
+            margin-top: 0.125rem;
+        }
+
+        .support-detail-content h5 {
+            font-size: 1rem;
+            font-weight: 600;
+            margin: 0 0 0.25rem 0;
+        }
+
+        .support-detail-content p {
+            color: var(--muted);
+            margin: 0;
+            font-size: 1rem;
+        }
+
+        .support-detail-content .email-link {
+            color: var(--hku-blue);
+            text-decoration: none;
+        }
+
+        .support-detail-content .email-link:hover {
+            text-decoration: underline;
+        }
+
+        .support-detail-content .warning-text {
+            color: #d97706;
+            font-size: 0.875rem;
+        }
+
+        .platforms-section {
+            margin-top: 2rem;
+        }
+
+        .platforms-section h4 {
+            font-size: 1rem;
+            font-weight: 600;
+            margin: 0 0 1.5rem 0;
+        }
+
+        .platforms-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1.5rem;
+        }
+
+        .platform-card {
+            background: #ffffff;
+            border: 1px solid #e5e7eb;
+            border-radius: 12px;
+            padding: 2rem;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            box-shadow: 0 1px 3px rgba(16, 42, 67, 0.06);
+            transition: all 0.2s;
+        }
+
+        .platform-icon {
+            width: 56px;
+            height: 56px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 1.25rem;
+            flex-shrink: 0;
+            overflow: hidden;
+        }
+
+        .platform-icon img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .platform-card-header {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .platform-card h5 {
+            font-size: 1.125rem;
+            font-weight: 600;
+            margin: 0;
+            color: var(--text);
+        }
+
+        .platform-card h5 a {
+            color: var(--hku-blue);
+            text-decoration: none;
+        }
+
+        .platform-card h5 a:hover {
+            text-decoration: underline;
+        }
+
+        .platform-badge {
+            display: inline-block;
+            padding: 0.125rem 0.5rem;
+            background: #f1f5f9;
+            color: #64748b;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .platform-card p {
+            color: var(--muted);
+            margin: 0 0 auto 0;
+            font-size: 0.875rem;
+            line-height: 1.5;
+            flex-grow: 1;
+        }
+
+        .platform-link {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            color: #94a3b8;
+            text-decoration: none;
+            position: absolute;
+            top: 2rem;
+            right: 2rem;
+            transition: color 0.2s;
+        }
+
+        .platform-link:hover {
+            text-decoration: none;
+            color: var(--hku-blue);
+        }
+
+        .platform-link svg {
+            width: 48px;
+            height: 48px;
+        }
+
+        .platform-tip {
+            background: #EFF6FF;
+            border-radius: 8px;
+            padding: 1rem 1.25rem;
+            margin-top: 1rem;
+        }
+
+        .platform-tip-title {
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: #2563EB;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 0.5rem;
+        }
+
+        .platform-tip-content {
+            font-size: 0.875rem;
+            color: #1e40af;
+            line-height: 1.5;
+            margin: 0;
+        }
+
+        /* FAQ Section Styles */
+        .faq-container {
+            --faq-pad: 1.75rem;
+            background: #ffffff;
+            border: 1px solid #e5e7eb;
+            border-radius: 12px;
+            padding: 0.25rem var(--faq-pad);
+            box-shadow: 0 1px 3px rgba(16, 42, 67, 0.06);
+            max-width: 1100px;
+            margin: 0 auto;
+        }
+
+        .faq-grid {
+            display: block;
+            counter-reset: faq;
+        }
+
+        /* flat rows separated by hairlines — no nested boxes */
+        .faq-item {
+            border: none;
+            border-radius: 0;
+            background: none;
+            border-bottom: 1px solid #eef1f5;
+            margin: 0 calc(-1 * var(--faq-pad));
+            padding: 0 var(--faq-pad);
+            counter-increment: faq;
+        }
+        .faq-item:last-child { border-bottom: none; }
+
+        .faq-question {
+            width: 100%;
+            padding: 1.15rem 0;
+            background: none;
+            border: none;
+            text-align: left;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 0.9rem;
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--text);
+            transition: color 0.2s;
+        }
+        .faq-question::before {
+            content: counter(faq);
+            flex-shrink: 0;
+            width: 1.4rem;
+            text-align: left;
+            color: #7092c0;
+            font-weight: 600;
+            font-size: 0.85rem;
+        }
+
+        .faq-question:hover { color: var(--hku-blue); }
+
+        .faq-icon {
+            width: 20px;
+            height: 20px;
+            margin-left: auto;
+            color: #9aa3af;
+            transition: transform 0.2s;
+            flex-shrink: 0;
+        }
+
+        .faq-question:hover .faq-icon { color: var(--hku-blue); }
+
+        .faq-question.active .faq-icon {
+            transform: rotate(180deg);
+        }
+
+        .faq-answer {
+            padding: 0 0 1.2rem 2.3rem;
+            color: var(--muted);
+            line-height: 1.6;
+            display: none;
+        }
+
+        .faq-answer.active {
+            display: block;
+        }
+
+        .faq-answer p {
+            margin: 0 0 1rem 0;
+        }
+
+        .faq-answer p:last-child {
+            margin-bottom: 0;
+        }
+
+        .faq-answer strong {
+            color: var(--text);
+            font-weight: 600;
+        }
+
+        /* Reduced motion support (all screen sizes) */
+        @media (prefers-reduced-motion: reduce) {
+            * {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
+            }
+
+            .carousel-wrapper {
+                transition: none;
+            }
+        }
+
+        /* High contrast mode support (all screen sizes) */
+        @media (prefers-contrast: high) {
+            .faq-item,
+            .support-card {
+                border-width: 2px;
+            }
+        }
+
+        /* Focus improvements for keyboard navigation (all screen sizes) */
+        .faq-question:focus-visible,
+        .carousel-controls:focus-visible,
+        .carousel-dot:focus-visible,
+        .carousel-container:focus-visible {
+            outline: 2px solid var(--hku-blue);
+            outline-offset: 2px;
+        }
+
+        @media (max-width: 768px) {
+            html {
+                scroll-padding-top: 80px;
+            }
+
+            .help-resources-grid {
+                grid-template-columns: 1fr;
+                gap: 1rem;
+            }     
+            
+            .support-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .platforms-grid {
+                grid-template-columns: 1fr;
+            }
+
+            h1, h2, h3, h4, h5, h6 {
+                word-wrap: break-word;
+                hyphens: auto;
+            }
+            
+            /* Ensure links don't break layout */
+            a {
+                word-wrap: break-word;
+                overflow-wrap: break-word;
+            }
+            
+            /* Ensure images don't overflow */
+            img {
+                max-width: 100%;
+                height: auto;
+            }
+            
+            /* Better spacing for mobile */
+            .section-lead {
+                font-size: 1rem;
+                line-height: 1.5;
+            }
+
+            section h2 { font-size: 1.45rem; }
+
+            .faq-question {
+                min-height: 44px;
+                touch-action: manipulation;
+            }
+            
+            /* Navigation touch targets */
+            .nav-links a {
+                min-height: 44px;
+            }
+            
+            .carousel-controls {
+                touch-action: manipulation;
+            }
+
+            .carousel-dot {
+                border-radius: 16px;
+                width: 12px;
+                height: 12px;
+            }
+
+            .carousel-dot.active {
+                width: 24px;
+                border-radius: 16px;
+            }
+            
+            /* Carousel dots positioning */
+            .carousel-dots {
+                bottom: 0.75rem;
+                gap: 0.4rem;
+            }
+
+            /* Container padding adjustments */
+            .enrollment-procedures,
+            .schedule-container,
+            .assessment-container,
+            .support-container,
+            .faq-container {
+                --faq-pad: 1.5rem;
+                padding: 1.5rem;
+                margin: 0 1rem;
+            }
+            
+            /* Hero title size on tablets */
+            .hero-content h1 {
+                font-size: 2.25rem;
+                white-space: normal;
+            }
+
+            /* Image carousel adjustments */
+            .carousel-controls {
+                width: 40px;
+                height: 40px;
+                font-size: 1.2rem;
+            }
+            
+            .carousel-prev {
+                left: 0.5rem;
+            }
+            
+            .carousel-next {
+                right: 0.5rem;
+            }
+            
+            /* Procedure steps */
+            .procedure-step {
+                flex-direction: row !important;
+                text-align: left;
+                gap: 1rem;
+                align-items: flex-start;
+            }
+            
+            .step-number {
+                margin-bottom: 0;
+                align-self: flex-start;
+                flex-shrink: 0;
+            }
+            
+            .step-content {
+                text-align: left;
+                width: 100%;
+                flex: 1;
+            }
+            
+            .step-content h4 {
+                text-align: left;
+                width: 100%;
+            }
+            
+            .step-content p {
+                text-align: left;
+            }
+            
+            /* Support cards */
+            .support-card {
+                padding: 1.5rem;
+            }
+            
+            /* Platform cards */
+            .platform-card {
+                padding: 1rem;
+            }
+            
+            /* FAQ adjustments */
+            .faq-question {
+                padding: 1rem 0;
+                font-size: 0.95rem;
+            }
+            
+            .faq-answer {
+                padding: 0 0 1.2rem 2.3rem;
+            }
+            
+            /* Schedule table mobile improvements */
+            .schedule-table {
+                font-size: 0.9rem;
+            }
+            
+            .schedule-table th,
+            .schedule-table td {
+                padding: 0.5rem;
+            }
+            
+        }
+
+        @media (max-width: 480px) {
+            html {
+                scroll-padding-top: 80px;
+            }
+
+            /* Extra small screens */
+            .nav {
+                padding: 0.75rem 1rem;
+            }
+
+            .hero-content h1 {
+                font-size: 1.6rem;
+                white-space: normal;
+            }
+
+            section h2 { font-size: 1.3rem; }
+            .section-banner { height: 200px; }
+            .section-banner-title { font-size: 1.15rem; padding: 0.5rem 0.9rem; }
+
+            .carousel-caption {
+                font-size: 0.7rem;
+                padding: 0.25rem 0.6rem;
+            }
+
+            .enrollment-procedures,
+            .schedule-container,
+            .assessment-container,
+            .support-container,
+            .faq-container {
+                --faq-pad: 1.4rem;
+                padding: 1.25rem 1.4rem;
+                margin: 0;
+            }
+
+            /* Schedule table mobile improvements */
+            .schedule-container {
+                padding: 1rem;
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+            }
+            
+            .schedule-table {
+                font-size: 0.85rem;
+                min-width: 600px;
+            }
+            
+            .schedule-table th,
+            .schedule-table td {
+                padding: 0.4rem;
+                font-size: 0.85rem;
+            }
+            
+            /* Smaller text for mobile */
+            .faq-question {
+                font-size: 0.9rem;
+                padding: 0.85rem 0;
+            }
+            
+            .faq-answer {
+                padding: 0 0 1.1rem 2.3rem;
+                font-size: 0.9rem;
+            }
+            
+            /* Support card adjustments */
+            .support-card-header h4 {
+                font-size: 1rem;
+            }
+            
+            .support-detail-content h5 {
+                font-size: 0.9rem;
+            }
+            
+            .support-detail-content p {
+                font-size: 0.85rem;
+            }
+            
+            /* Carousel mobile adjustments for small screens */
+            .carousel-controls {
+                width: 36px;
+                height: 36px;
+                font-size: 1rem;
+            }
+            
+            /* Carousel dots for small screens */
+            .carousel-dot {
+                border-radius: 14px;
+                width: 10px;
+                height: 10px;
+            }
+            
+            .carousel-dot.active {
+                width: 14px;
+                border-radius: 14px;
+            }
+            
+            /* Carousel dots positioning */
+            .carousel-dots {
+                bottom: 0.5rem;
+                gap: 0.35rem;
+            }
+            
+        }
+
+        /* Safe area handling for devices with notches */
+        @supports (padding: max(0px)) {
+            .band-inner {
+                padding-left: max(1.25rem, env(safe-area-inset-left));
+                padding-right: max(1.25rem, env(safe-area-inset-right));
+            }
+
+            @media (max-width: 1280px) {
+                .band-inner,
+                .section-banner-inner {
+                    padding-left: max(clamp(1.5rem, 7vw, 5rem), env(safe-area-inset-left));
+                    padding-right: max(clamp(1.5rem, 7vw, 5rem), env(safe-area-inset-right));
+                }
+                .section-banner-caption { left: max(clamp(1.5rem, 7vw, 5rem), env(safe-area-inset-left)); }
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <nav class="nav">
+            <div class="nav-logo-wrap">
+                <a href="https://www.cds.hku.hk/" target="_blank" rel="noopener" aria-label="HKU School of Computing and Data Science">
+                    <img src="img/home/logo.png" alt="HKU Logo" class="nav-logo" />
+                </a>
+                <a class="hero-cic-seal" href="https://cics.hku.hk/home/what-is-cic/" target="_blank" rel="noopener" aria-label="Communication-Intensive Course — learn more">
+                    <img src="img/home/cic.webp" alt="Communication-Intensive Course badge">
+                    <span>CI-Badged<small>Communication-Intensive</small></span>
+                </a>
+            </div>
+            <button class="nav-toggle" id="navToggle" aria-label="Open menu" aria-expanded="false">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+            </button>
+            <div class="nav-links" id="navLinks">
+                <button class="nav-close" id="navClose" aria-label="Close menu">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><line x1="6" y1="6" x2="18" y2="18"/><line x1="18" y1="6" x2="6" y2="18"/></svg>
+                </button>
+                <a href="#home" data-home>Home</a>
+                <a href="#enrollment">Enrolment</a>
+                <a href="#schedule">Schedule</a>
+                <a href="#contact">Contact Us</a>
+                <a href="#faq">FAQ</a>
+                <a href="https://intraweb.hku.hk/reserved_2/ailt1001/" class="nav-materials" target="_blank">Course Materials<span class="staff-only">Staff Only</span></a>
+                <a href="ailt1001_SH.html" class="nav-shanghai">AILT1001 in Shanghai <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="22" y1="62" x2="44" y2="62"/><line x1="31" y1="43" x2="31" y2="27"/><polyline points="35 53 35 62 31 62 31 53"/><line x1="35" y1="27" x2="35" y2="43"/><line x1="36.641" y1="51.985" x2="42" y2="62"/><line x1="29.537" y1="51.985" x2="24" y2="62"/><path d="M27.813,23a5,5,0,0,0,9.8,0Z"/><path d="M37.712,22a5,5,0,1,0-9.9,1h9.8A5.062,5.062,0,0,0,37.712,22Z"/><path d="M32.859,43a5,5,0,0,0-4.578,3h9.156A5,5,0,0,0,32.859,43Z"/><path d="M32.859,53a5,5,0,0,0,4.578-3H28.281A5,5,0,0,0,32.859,53Z"/><path d="M28.281,46a4.95,4.95,0,0,0,0,4"/><path d="M37.437,50a4.95,4.95,0,0,0,0-4"/><line x1="33" y1="3" x2="33" y2="17"/></svg></a>
+            </div>
+        </nav>
+    </header>
+
+    <section class="hero view-block" data-view="home">
+        <div class="carousel-container" id="carouselContainer" tabindex="0" role="region" aria-roledescription="carousel" aria-label="Poster exhibition photo carousel">
+            <div class="carousel-wrapper" id="carouselWrapper">
+                <div class="carousel-slide" data-caption="Interactive Lecture">
+                    <img src="img/home/01.jpg" alt="Interactive lecture session" />
+                </div>
+                <div class="carousel-slide" data-caption="Project Exhibition">
+                    <img src="img/home/02.jpg" alt="Project exhibition 1" loading="lazy" />
+                </div>
+                <div class="carousel-slide" data-caption="Project Exhibition">
+                    <img src="img/home/03.jpg" alt="Project exhibition 2" loading="lazy" />
+                </div>
+                <div class="carousel-slide" data-caption="Project Exhibition">
+                    <img src="img/home/04.jpg" alt="Project exhibition 3" loading="lazy" />
+                </div>
+                <div class="carousel-slide" data-caption="Project Exhibition">
+                    <img src="img/home/05.jpg" alt="Project exhibition 4" loading="lazy" />
+                </div>
+                <div class="carousel-slide" data-caption="Project Exhibition">
+                    <img src="img/home/06.jpg" alt="Project exhibition 5" loading="lazy" />
+                </div>
+            </div>
+            <span class="carousel-caption" id="carouselCaption">Interactive Lecture</span>
+            <div class="carousel-nav">
+                <button class="carousel-controls carousel-prev" onclick="prevSlide()" aria-label="Previous slide">‹</button>
+                <div class="carousel-dots">
+                    <button class="carousel-dot active" onclick="goToSlide(0)" aria-label="Go to slide 1"></button>
+                    <button class="carousel-dot" onclick="goToSlide(1)" aria-label="Go to slide 2"></button>
+                    <button class="carousel-dot" onclick="goToSlide(2)" aria-label="Go to slide 3"></button>
+                    <button class="carousel-dot" onclick="goToSlide(3)" aria-label="Go to slide 4"></button>
+                    <button class="carousel-dot" onclick="goToSlide(4)" aria-label="Go to slide 5"></button>
+                    <button class="carousel-dot" onclick="goToSlide(5)" aria-label="Go to slide 6"></button>
+                </div>
+                <button class="carousel-controls carousel-next" onclick="nextSlide()" aria-label="Next slide">›</button>
+            </div>
+        </div>
+
+        <div class="hero-content">
+            <span class="hero-eyebrow">The University of Hong Kong &middot; School of Computing &amp; Data Science</span>
+            <h1>Artificial Intelligence Literacy I</h1>
+        </div>
+    </section>
+
+    <div class="band band-surface view-block" data-view="home">
+        <div class="band-inner">
+            <section id="about">
+                <h2>About AILT1001</h2>
+                <p class="section-lead">
+                    <strong>All undergraduate students admitted from 2025-26 onwards</strong> 
+                    (except those in the 2-year part-time Bachelor of Nursing programme) are required to take 
+                    <strong>Artificial Intelligence Literacy I (AILT1001)</strong>. Students are highly encouraged to take 
+                    AILT1001 in their <strong>first year</strong> (Semester 1 or 2) as it is a prerequisite for taking the second AI Literacy course required for graduation.
+                </p>
+                <p class="section-lead">The course consists of ten one-hour lectures and five two-hour project studio sessions (similar to tutorials in other courses). 
+                    Students must first enrol in a lecture subclass and then select a studio subclass. The lectures introduce the core concepts, while the studio sessions
+                provide guided, hands-on opportunities to apply them through project work. <a href="#enrollment" class="enroll-inline">Enrol Now <span aria-hidden="true">&rarr;</span></a></p>
+                <div class="cic-callout">
+                    <img src="img/home/cic.webp" alt="Communication-Intensive Course badge">
+                    <p>This course is a <strong><a href="https://cics.hku.hk/home/what-is-cic/" target="_blank" rel="noopener">Communication-Intensive Course (CiC)</a></strong> &mdash; 
+                        an official HKU badge for courses that build your <i>oral, written, visual, and digital</i> skills alongside the subject itself. 
+                        Additionally, it puts you on track for the <strong><a href="https://cics.hku.hk/distinguished-communicator-award/" target="_blank" rel="noopener">Distinguished Communicator Award</a></strong> &mdash;
+                        your chance to win a <strong>HKD 5,000</strong> cash prize and have the award noted on your <strong>HKU transcript</strong>!</p>
+                </div>
+            </section>
+        </div>
+    </div>
+
+    <div class="band band-light view-block" data-view="enrollment">
+        <div class="section-banner">
+            <div class="section-banner-inner">
+                <div class="section-banner-caption">
+                    <span class="section-crumb"><a data-home>Home</a> &rsaquo; Enrolment</span>
+                    <h1 class="section-banner-title">Enrolment Procedures for AILT1001</h1>
+                </div>
+            </div>
+        </div>
+        <div class="band-inner">
+            <section id="enrollment">
+                <p class="section-lead">Follow these steps to enrol in AILT1001, a required course for most first-year HKU students:</p>
+                
+                <div class="enrollment-procedures">
+                    <div class="procedure-step">
+                        <div class="step-number">1</div>
+                        <div class="step-content">
+                            <h4>Find Enrolment Dates</h4>
+                            <p>Check the <a class="visit-link" href="https://aas.hku.hk/important-academic-dates/" target="_blank">University Course Selection Schedule</a> for Course Selection and Add/Drop Periods in Semester 1 or 2.</p>
+                        </div>
+                    </div>
+
+                    <div class="procedure-step">
+                        <div class="step-number">2</div>
+                        <div class="step-content">
+                            <h4>Enrol in a Lecture via SIS</h4>
+                            <p>Log into <a class="visit-link" href="https://hkuportal.hku.hk/login.html" target="_blank">HKU Portal</a> > My Page > SIS Menu > Enrolment > Course Selection.
+                                <br>Search for <strong>AILT1001</strong> and pick a lecture time ("subclass").
+                                <br><strong>Help</strong>: See the <a class="visit-link" href="https://aas.hku.hk/course-enrollment/" target="_blank">SIS Course Selection Guide</a>.</p>
+                        </div>
+                    </div>
+
+                    <div class="procedure-step">
+                        <div class="step-number">3</div>
+                        <div class="step-content">
+                            <h4>Check Your Status</h4>
+                            <p>In SIS (Enrolment > Enrolment Status), check if your enrolment is "Pending", "Approved", or "Not Approved". If not approved, try another subclass during the Add/Drop Period.</p>
+                        </div>
+                    </div>
+
+                    <div class="procedure-step">
+                        <div class="step-number">4</div>
+                        <div class="step-content">
+                            <h4>Sign Up for Project Studios</h4>
+                            <p>After lecture approval, check the
+                                <a class="visit-link" href="https://its.hku.hk/kb/tutorial-sign-up-application/" target="_blank">Project Studio Sign-Up Guide</a>. Project studios are <strong>mandatory</strong> and scheduled across Monday to Saturday.</p>
+                            <div class="tutorial-enrollment-alert">
+                                <div class="alert-content">
+                                    <h4>Project Studio Enrolment Period</h4>
+                                    <p style="margin-bottom: 0.5rem; font-style: italic; color: #92400e; font-size: 1rem;">All slots are allocated on a first-come, first-served basis.</p>
+                                    <div class="enrollment-dates">
+                                        <div><strong>Semester 1:</strong> September 1 – 5, 2026 (10:00 AM – 11:59 PM HKT)</div>
+                                        <div><strong>Exceptional Circumstances:</strong>
+                                            If you have valid reasons (medical emergency, SIS issues, scheduling conflicts, etc.), email <a href="mailto:ailit@hku.hk" class="visit-link" target="_blank">ailit@hku.hk</a> during the enrolment window.
+                                        </div>
+                                        <div><strong>Email Subject Line:</strong> AILT1001 Project Studio Exception Request - [Student ID] - Semester [1 or 2]
+                                            <br>Include supporting evidence with your request. The course team will review and provide individualized solutions if feasible.
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="procedure-step">
+                        <div class="step-number">5</div>
+                        <div class="step-content">
+                            <span class="step-done">Done!</span>
+                            <h4>Check Course Schedule and Finalise</h4>
+                            <p>Check the <a href="#schedule" class="visit-link">course calendar</a> to ensure no timetable conflicts with other courses. Changes are not allowed after the Add/Drop Period.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <section id="help-resources" style="margin-top: 2rem;">
+                    <div class="help-resources-grid">
+                        <div class="help-block">
+                            <h3>Need Help?</h3>
+                            <ul>
+                                <li>Course questions: Email <a href="mailto:ailit@hku.hk" class="visit-link" target="_blank">ailit@hku.hk</a>.</li>
+                                <li>Technical issues: Contact ITS at <a href="https://its.hku.hk/contact-us/" class="visit-link" target="_blank">its.hku.hk</a>.</li>
+                            </ul>
+                        </div>
+                    
+                        <div class="resources-block">
+                            <h3>Additional Resources</h3>
+                            <ul>
+                                <li><a href="#faq" class="visit-link">Enrolment FAQs</a></li>
+                                <li><a href="https://sweb.hku.hk/ccacad/enrol_stat/enrol_stat.html" class="visit-link" target="_blank">2026-2027 Enrolment Statistics for AILT1001</a></li>
+                            </ul>
+                        </div>
+                    </div>
+                </section>
+            </section>
+        </div>
+    </div>
+
+
+    <div class="band band-soft view-block" data-view="schedule">
+        <div class="section-banner">
+            <div class="section-banner-inner">
+                <div class="section-banner-caption">
+                    <span class="section-crumb"><a data-home>Home</a> &rsaquo; Schedule</span>
+                    <h1 class="section-banner-title">Course Schedule</h1>
+                </div>
+            </div>
+        </div>
+        <div class="band-inner">
+            <section id="schedule">
+
+                <p class="section-lead">The calendar includes the enrolment period, lecture times, project studio schedule and more. Select your subclass to highlight your own sessions.</p>
+
+                <!-- Interactive academic calendar (self-contained widget) -->
+                <div class="calendar-embed">
+                    <iframe src="academic-calendar.html" title="AILT1001 Academic Calendar" loading="lazy"></iframe>
+                </div>
+
+                <div class="schedule-container">
+                    <div class="lecture-head">
+                        <h3 style="margin: 0; font-size: 1.125rem; font-weight: 600;">Lecture Timetable</h3>
+                        <div class="sem-toggle" role="tablist" aria-label="Select semester">
+                            <button type="button" class="sem-btn active" data-sem="1" onclick="switchSemester('1')">Semester 1</button>
+                            <button type="button" class="sem-btn" data-sem="2" onclick="switchSemester('2')">Semester 2</button>
+                            <button type="button" class="sem-btn" data-sem="summer" onclick="switchSemester('summer')">Summer</button>
+                        </div>
+                    </div>
+
+                    <table class="schedule-table view-1">
+                        <thead>
+                            <tr>
+                                <th>Semester</th>
+                                <th>Day</th>
+                                <th>Time</th>
+                                <th>Subclass</th>
+                                <th>Venue</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Semester 1 -->
+                            <tr data-sem="1">
+                                <td class="sem-cell" rowspan="9">1</td>
+                                <td rowspan="2">Wed</td>
+                                <td rowspan="2">09:00-09:50</td>
+                                <td class="subclass-cell">1A</td>
+                                <td>CPD-LG.01</td>
+                            </tr>
+                            <tr data-sem="1" class="row-alt">
+                                <td class="subclass-cell">1E</td>
+                                <td>LE1</td>
+                            </tr>
+                            <tr data-sem="1">
+                                <td rowspan="2">Wed</td>
+                                <td rowspan="2">10:00-10:50</td>
+                                <td class="subclass-cell">1B</td>
+                                <td>CPD-LG.01</td>
+                            </tr>
+                            <tr data-sem="1" class="row-alt">
+                                <td class="subclass-cell">1F</td>
+                                <td>LE1</td>
+                            </tr>
+                            <tr data-sem="1">
+                                <td rowspan="2">Wed</td>
+                                <td rowspan="2">11:00-11:50</td>
+                                <td class="subclass-cell">1C</td>
+                                <td>CPD-LG.01</td>
+                            </tr>
+                            <tr data-sem="1" class="row-alt">
+                                <td class="subclass-cell">1G</td>
+                                <td>LE1</td>
+                            </tr>
+                            <tr data-sem="1">
+                                <td rowspan="2">Wed</td>
+                                <td rowspan="2">12:00-12:50</td>
+                                <td class="subclass-cell">1D</td>
+                                <td>CPD-LG.01</td>
+                            </tr>
+                            <tr data-sem="1" class="row-alt">
+                                <td class="subclass-cell">1H</td>
+                                <td>LE1</td>
+                            </tr>
+                            <tr data-sem="1">
+                                <td><span class="nowrap">Reading week</span><br><span class="nowrap">(Oct 12 – Oct 16, 2026)</span></td>
+                                <td></td>
+                                <td class="subclass-cell">#1SH</td>
+                                <td>HKU-CDS Teaching and Research Site, Shanghai</td>
+                            </tr>
+
+                            <!-- Semester 2 -->
+                            <tr data-sem="2">
+                                <td class="sem-cell" rowspan="9">2</td>
+                                <td rowspan="2">Wed</td>
+                                <td rowspan="2">09:00-09:50</td>
+                                <td class="subclass-cell">2I</td>
+                                <td>CPD-LG.01</td>
+                            </tr>
+                            <tr data-sem="2" class="row-alt">
+                                <td class="subclass-cell">2M</td>
+                                <td>LE1</td>
+                            </tr>
+                            <tr data-sem="2">
+                                <td rowspan="2">Wed</td>
+                                <td rowspan="2">10:00-10:50</td>
+                                <td class="subclass-cell">2J</td>
+                                <td>CPD-LG.01</td>
+                            </tr>
+                            <tr data-sem="2" class="row-alt">
+                                <td class="subclass-cell">2N</td>
+                                <td>LE1</td>
+                            </tr>
+                            <tr data-sem="2">
+                                <td rowspan="2">Wed</td>
+                                <td rowspan="2">11:00-11:50</td>
+                                <td class="subclass-cell">2K</td>
+                                <td>CPD-LG.01</td>
+                            </tr>
+                            <tr data-sem="2" class="row-alt">
+                                <td class="subclass-cell">2O</td>
+                                <td>LE1</td>
+                            </tr>
+                            <tr data-sem="2">
+                                <td rowspan="2">Wed</td>
+                                <td rowspan="2">12:00-12:50</td>
+                                <td class="subclass-cell">2L</td>
+                                <td>CPD-LG.01</td>
+                            </tr>
+                            <tr data-sem="2" class="row-alt">
+                                <td class="subclass-cell">2P</td>
+                                <td>LE1</td>
+                            </tr>
+                            <tr data-sem="2">
+                                <td><span class="nowrap">Reading week</span><br><span class="nowrap">(Mar 8 – Mar 12, 2027)</span></td>
+                                <td></td>
+                                <td class="subclass-cell">#2SH</td>
+                                <td>HKU-CDS Teaching and Research Site, Shanghai</td>
+                            </tr>
+                            <tr data-sem="summer">
+                                <td class="sem-cell">Summer</td>
+                                <td>July 5 – July 9, 2027</td>
+                                <td></td>
+                                <td class="subclass-cell">#SSH</td>
+                                <td>HKU-CDS Teaching and Research Site, Shanghai</td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <div class="special-notice" style="background-color:#f1f5df;">
+                        <p>#<i><strong>AILT1001-1SH, 2SH and SSH</strong></i> are mutually exclusive with other subclasses of <i><strong>AILT1001</strong></i>.
+                        </p>
+                    </div>
+
+                    <div class="policy-section">
+                        <h4>Project Studios</h4>
+                        <p style="color: var(--muted); margin: 0;">Held from Monday to Saturday across various timeslots. Details to be announced during project studio sign-up.</p>
+                    </div>
+
+                    <div class="policy-section">
+                        <h4>Sick leave policy</h4>
+                        <div class="policy-list">
+                            <ul>
+                                <li>If students are unable to attend project studios or the final test, they must email <a href="mailto:ailit@hku.hk" class="visit-link" target="_blank">ailit@hku.hk</a> with <strong>a valid sick leave certificate</strong> covering the date of the missed project studio or test.</li>
+                                <li>Sick leave certificate dated latest by <strong>one working day after</strong> will be accepted. (e.g. If the missed final test is on Friday, a sick leave certificate dated the following Monday will be accepted.)</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="policy-section">
+                        <h4>Bad weather arrangements</h4>
+                        <p>Please visit <a href="http://www.exam.hku.hk/a2_badweather.php" class="visit-link" target="_blank">http://www.exam.hku.hk/a2_badweather.php</a> for class arrangements during bad weather.</p>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </div>
+
+    <div class="band band-surface view-block" data-view="home">
+        <div class="band-inner">
+            <section id="assessment">
+                <h2>Course Assessment</h2>                
+                <div class="assessment-container">
+                    <div class="clo-section">
+                        <h4>Course Learning Outcomes (CLOs)</h4>
+                        <ul class="clo-list">
+                            <li class="clo-card c1">
+                                <span class="clo-num"><small>CLO</small>1</span>
+                                <span class="clo-text">Able to explain how AI works.</span>
+                            </li>
+                            <li class="clo-card c2">
+                                <span class="clo-num"><small>CLO</small>2</span>
+                                <span class="clo-text">Able to interact effectively with AI systems.</span>
+                            </li>
+                            <li class="clo-card c3">
+                                <span class="clo-num"><small>CLO</small>3</span>
+                                <span class="clo-text">Able to critically evaluate AI systems.</span>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <div class="pie-side-wrap">
+                        <svg class="connector" id="connector">
+                            <path id="beam" d="" fill="none"/>
+                        </svg>
+                        <div class="pie-col">
+                            <div class="pie-holder" id="pieHolder"></div>
+                        </div>
+                        <div class="pie-detail" id="pieDetail">
+                            <p class="hint">Click a slice to see its details here.</p>
+                        </div>
+                    </div>
+
+                    <div class="important-notice">
+                        <p class="notice-text">To pass the course, students must receive a non-zero mark 
+                            for both the project and the final test. Attendance at the
+                            final test and all project studio sessions is mandatory.</p>
+                    </div>
+
+                    <div class="policy-section-assessment">
+                        <div class="academic-integrity-section">
+                            <h4>
+                                <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10"></path>
+                                    <path d="m9 12 2 2 4-4"></path>
+                                </svg>
+                                Academic Integrity and Misconduct Policy (AILT1001)
+                            </h4>
+                            
+                            <p class="academic-integrity-intro">
+                                Academic honesty is fundamental to teaching, learning, and assessment in AILT1001, and all students are required to uphold the highest standards of integrity in all submitted work.
+                            </p>
+
+                            <div class="misconduct-list">
+                                <h5>Academic misconduct includes, but is not limited to:</h5>
+                                <ol>
+                                    <li>
+                                        <strong>Plagiarism:</strong> Submitting another person's work, in whole or in part, as one's own without proper acknowledgment.
+                                    </li>
+                                    <li>
+                                        <strong>Cheating:</strong> Such as copying or sharing answers, using unauthorized notes, online search engines, or AI tools including ChatGPT or Copilot in quizzes, tests, or other assessments without explicit permission.
+                                    </li>
+                                    <li>
+                                        <strong>Assisting others to act dishonestly</strong>
+                                    </li>
+                                    <li>
+                                        <strong>Falsification, fabrication, or manipulation of data or results</strong>
+                                    </li>
+                                </ol>
+                                <p style="margin-top: 1rem; color: #78350f; font-style: italic; font-size: 0.95rem;">
+                                    These rules apply to all forms of assessment, including assignments, projects, and in-class or online tests.
+                                </p>
+                            </div>
+
+                            <div class="consequences-box">
+                                <h5>
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"></path>
+                                        <path d="M12 9v4"></path>
+                                        <path d="M12 17h.01"></path>
+                                    </svg>
+                                    Consequences of Academic Misconduct
+                                </h5>
+                                <p>
+                                    Any student found to have committed academic misconduct may <strong>receive a failing grade</strong> for the affected assessment or the course, be <strong>formally reported</strong> to the School and their home Faculty, and have a <strong>permanent record placed on file</strong>. Serious or repeated cases will be referred to the Vice-Chancellor for consideration by the University Disciplinary Committee, where penalties may include a <strong>published reprimand, suspension, or expulsion</strong>.
+                                </p>
+                            </div>
+
+                            <div style="background: #f0f9ff; border: 1px solid #0ea5e9; border-radius: 8px; padding: 1.25rem; margin-top: 1.5rem;">
+                                <p style="margin: 0; color: #0c4a6e; line-height: 1.6;">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display: inline; margin-right: 0.5rem; vertical-align: text-top;">
+                                        <circle cx="12" cy="12" r="10"></circle>
+                                        <path d="m9 12 2 2 4-4"></path>
+                                    </svg>
+                                    For the University's Regulations Governing Students' Academic Conduct Concerning Assessment, please refer to 
+                                    <a href="https://calendar.hku.hk/regulations-governing-students-academic-conduct-concerning-assessment/" target="_blank" style="color: #0369a1; text-decoration: underline; font-weight: 600;">
+                                        https://calendar.hku.hk/regulations-governing-students-academic-conduct-concerning-assessment/
+                                    </a>.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </div>
+
+    <div class="band band-light view-block" data-view="contact">
+        <div class="section-banner">
+            <div class="section-banner-inner">
+                <div class="section-banner-caption">
+                    <span class="section-crumb"><a data-home>Home</a> &rsaquo; Contact Us</span>
+                    <h1 class="section-banner-title">Contact Us</h1>
+                </div>
+            </div>
+        </div>
+        <div class="band-inner">
+            <section id="contact">
+                
+                <div class="support-container">
+                    <div class="support-grid">
+                        <div class="support-card">
+                            <div class="support-card-header">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2">
+                                    <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
+                                    <polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline>
+                                    <line x1="12" y1="22.08" x2="12" y2="12"></line>
+                                </svg>
+                                <h4>AILT1001 Help Desk</h4>
+                            </div>
+                            
+                            <div class="support-detail">
+                                <svg class="support-detail-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#6b7280" stroke-width="2">
+                                    <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+                                    <circle cx="12" cy="10" r="3"></circle>
+                                </svg>
+                                <div class="support-detail-content">
+                                    <h5>Location</h5>
+                                    <p>MB110, Main Building</p>
+                                </div>
+                            </div>
+
+                            <div class="support-detail">
+                                <svg class="support-detail-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#6b7280" stroke-width="2">
+                                    <circle cx="12" cy="12" r="10"></circle>
+                                    <polyline points="12,6 12,12 16,14"></polyline>
+                                </svg>
+                                <div class="support-detail-content">
+                                    <h5>Hours</h5>
+                                    <p>Mon - Fri: 13:00-17:00</p>
+                                    <p class="warning-text">Closed during semester breaks</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="support-card">
+                            <div class="support-card-header">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2">
+                                    <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
+                                    <polyline points="22,6 12,13 2,6"></polyline>
+                                </svg>
+                                <h4>Course Email</h4>
+                            </div>
+                            
+                            <div class="support-detail">
+                                <svg class="support-detail-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#6b7280" stroke-width="2">
+                                    <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
+                                    <polyline points="22,6 12,13 2,6"></polyline>
+                                </svg>
+                                <div class="support-detail-content">
+                                    <p><a href="mailto:ailit@hku.hk" class="email-link visit-link" target="_blank">ailit@hku.hk</a></p>
+                                    <p style="margin-top: 0.7rem;">All course related questions should be posted on Ed.</p>
+                                    <p style="margin-top: 0.4rem;"> Enquiries involving personal information (e.g., sick leave) should be sent to the course email.</p>
+                                    <p style="margin-top: 0.4rem;">Do not contact course staff directly.</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="support-card">
+                            <div class="support-card-header">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2">
+                                    <path d="M22 12h-4l-3 9L9 3l-3 9H2"></path>
+                                </svg>
+                                <h4>Counselling & Emotional Support</h4>
+                            </div>
+                            
+                            <div class="support-detail">
+                                <div class="support-detail-content">
+                                    <p>Visit <a href="https://www.cedars.hku.hk/" class="email-link visit-link" target="_blank">CEDARS Official Website</a> for professional counselling and emotional support.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="platforms-section">
+                        <h4>Learning Management Systems (for enrolled students only)</h4>
+                        <div class="platforms-grid">
+                            <div class="platform-card">
+                                <a href="https://moodle.hku.hk/" class="platform-icon" target="_blank" rel="noopener" aria-label="Moodle">
+                                    <img src="img/home/moodle.png" alt="Moodle">
+                                </a>
+                                <a href="https://moodle.hku.hk/" class="platform-link visit-link" target="_blank">
+                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M7 17L17 7M17 7H7M17 7V17"/>
+                                    </svg>
+                                </a>
+                                <div class="platform-card-header">
+                                    <h5><a href="https://moodle.hku.hk/" class="visit-link" target="_blank">Moodle</a></h5>
+                                    <span class="platform-badge">LMS</span>
+                                </div>
+                                <p>Central hub for project grouping, assignment submission, and grade release.</p>
+                            </div>
+
+                            <div class="platform-card">
+                                <a href="https://edstem.org/au/login" class="platform-icon" target="_blank" rel="noopener" aria-label="Edstem">
+                                    <img src="img/home/ed.jpg" alt="Edstem">
+                                </a>
+                                <a href="https://edstem.org/au/login" class="platform-link visit-link" target="_blank">
+                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M7 17L17 7M17 7H7M17 7V17"/>
+                                    </svg>
+                                </a>
+                                <div class="platform-card-header">
+                                    <h5><a href="https://edstem.org/au/login" class="visit-link" target="_blank">Edstem.org</a></h5>
+                                    <span class="platform-badge">LMS</span>
+                                </div>
+                                <p>Interactive platform for course discussions, quiz, test, and learning materials.</p>
+                                <div class="platform-tip">
+                                    <div class="platform-tip-title">Helpful Tip</div>
+                                    <p class="platform-tip-content">Enrolled students should direct all course-related questions to the Ed discussion platform.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </section>
+        </div>
+    </div>
+
+    <div class="band band-soft view-block" data-view="faq">
+        <div class="section-banner">
+            <div class="section-banner-inner">
+                <div class="section-banner-caption">
+                    <span class="section-crumb"><a data-home>Home</a> &rsaquo; FAQ</span>
+                    <h1 class="section-banner-title">Frequently Asked Questions</h1>
+                </div>
+            </div>
+        </div>
+        <div class="band-inner">
+            <section id="faq">
+                <p class="section-lead">Frequently asked questions about AILT1001 enrolment and course requirements.</p>
+                
+                <div class="faq-container">
+                    <div class="faq-grid">
+                        <div class="faq-item">
+                            <button class="faq-question" onclick="toggleFAQ(this)">
+                                Do I need to enrol in AILT1001?
+                                <svg class="faq-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <polyline points="6 9 12 15 18 9"></polyline>
+                                </svg>
+                            </button>
+                            <div class="faq-answer">
+                                <p>The course AILT1001 is offered to all undergraduate students, including senior year admissions, admitted from the academic year 2025-26 and thereafter, as part of the graduation requirements, except for the students of the two-year part-time self-funded Bachelor of Nursing programme for Registered Nurses. For further clarification, please consult your Home Faculty.</p>
+                            </div>
+                        </div>
+
+                        <div class="faq-item">
+                            <button class="faq-question" onclick="toggleFAQ(this)">
+                                Are there any prerequisites for enrolling AILT1001?
+                                <svg class="faq-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <polyline points="6 9 12 15 18 9"></polyline>
+                                </svg>
+                            </button>
+                            <div class="faq-answer">
+                                <p>No prerequisites are required to enrol in AILT1001.</p>
+                            </div>
+                        </div>
+
+                        <div class="faq-item">
+                            <button class="faq-question" onclick="toggleFAQ(this)">
+                                How can I enrol in the course and what is the enrolment process like?
+                                <svg class="faq-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <polyline points="6 9 12 15 18 9"></polyline>
+                                </svg>
+                            </button>
+                            <div class="faq-answer">
+                                <p>Students can refer to <a href="https://aas.hku.hk/important-academic-dates/" class="visit-link" target="_blank">Course Selection Schedule</a> for their designated enrolment periods and <a href="https://aas.hku.hk/course-enrollment/" class="visit-link" target="_blank">Course Selection and Enrolment</a> for instructions.</p>
+                                <p>Enrolment must be completed during the specific course selection and add/drop periods in either Semester One or Semester Two. If a class becomes over-enrolled, final approval will be determined through the ballot function in SIS. Enrolment for each subclass will only be approved up to the class quota.</p>
+                                <p>Students are advised to regularly check SIS for their enrolment status (SIS menu > Enrolment > Enrolment Status). You will also receive a notification email within one working day after your status is updated to 'Approved' or 'Not Approved'. For technical issues, please contact <a href="https://its.hku.hk/contact-us/" class="visit-link" target="_blank">ITS</a> for advice and assistance.</p>
+                            </div>
+                        </div>
+
+                        <div class="faq-item">
+                            <button class="faq-question" onclick="toggleFAQ(this)">
+                                I cannot find or register the course in SIS. What should I do?
+                                <svg class="faq-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <polyline points="6 9 12 15 18 9"></polyline>
+                                </svg>
+                            </button>
+                            <div class="faq-answer">
+                                <p>Please refer to <a href="https://aas.hku.hk/important-academic-dates/" class="visit-link" target="_blank">Course Selection Schedule</a> for your designated enrolment periods and <a href="https://aas.hku.hk/course-enrollment/" class="visit-link" target="_blank">Course Selection and Enrolment</a> for instructions. For technical issues, please contact <a href="https://its.hku.hk/contact-us/" class="visit-link" target="_blank">ITS</a> for advice and assistance.</p>
+                            </div>
+                        </div>
+
+                        <div class="faq-item">
+                            <button class="faq-question" onclick="toggleFAQ(this)">
+                                What does it mean if my enrolment status for AILT1001 is 'Pending'?
+                                <svg class="faq-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <polyline points="6 9 12 15 18 9"></polyline>
+                                </svg>
+                            </button>
+                            <div class="faq-answer">
+                                <p>A 'Pending' status indicates that your enrolment request is awaiting approval or disapproval. The final decision will be made via the ballot function in SIS. Please check SIS regularly for updates on your enrolment status. Once your status changes to 'Approved,' it means you are officially enrolled in the course.</p>
+                                <p>Students are advised to check regularly on SIS for the confirmed enrolment status (SIS menu > Enrolment > Enrolment Status).</p>
+                            </div>
+                        </div>
+
+                        <div class="faq-item">
+                            <button class="faq-question" onclick="toggleFAQ(this)">
+                                What should I do if the desired subclass is full?
+                                <svg class="faq-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <polyline points="6 9 12 15 18 9"></polyline>
+                                </svg>
+                            </button>
+                            <div class="faq-answer">
+                                <p>If a subclass is full, it will be closed. You can monitor the class status in case someone drops the course during the add/drop period, which may reopen the subclass. When a student drops a class, the subclass will reopen for registration, and you may wait for the released quota to enrol in your preferred subclass.</p>
+                                <p>Alternatively, please consider registering for other available subclasses. There are subclasses offered in Semester One,
+                                Semester Two and Summer Semester. You can check the available quota at <a href="https://sweb.hku.hk/ccacad/enrol_stat/enrol_stat.html" class="visit-link" target="_blank">the enrolment statistics page</a>.</p>
+                            </div>
+                        </div>
+
+                        <div class="faq-item">
+                            <button class="faq-question" onclick="toggleFAQ(this)">
+                                I am enrolled in Subclass A, and my friend is enrolled in Subclass B. Can we swap our enrolments?
+                                <svg class="faq-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <polyline points="6 9 12 15 18 9"></polyline>
+                                </svg>
+                            </button>
+                            <div class="faq-answer">
+                                <p>We are unable to facilitate swaps between subclasses. To change your enrolment, you need to drop your current subclass and manually add another in SIS. The new enrolment will be subject to the ballot function in SIS, and we <strong>cannot guarantee</strong> placement in another subclass.</p>
+                            </div>
+                        </div>
+
+                        <div class="faq-item">
+                            <button class="faq-question" onclick="toggleFAQ(this)">
+                                Can I modify my course enrolment after the add/drop period has ended?
+                                <svg class="faq-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <polyline points="6 9 12 15 18 9"></polyline>
+                                </svg>
+                            </button>
+                            <div class="faq-answer">
+                                <p>No, course enrolment changes are not permitted after the end of the add/drop period. Please refer to <a href="https://aas.hku.hk/important-academic-dates/" class="visit-link" target="_blank">Course Selection Schedule</a> and complete your registration during the designated course selection and add/drop periods.</p>
+                            </div>
+                        </div>
+
+                        <div class="faq-item">
+                            <button class="faq-question" onclick="toggleFAQ(this)">
+                                Can I enrol in AILT1001 as a Free Elective?
+                                <svg class="faq-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <polyline points="6 9 12 15 18 9"></polyline>
+                                </svg>
+                            </button>
+                            <div class="faq-answer">
+                                <p>No, AILT1001 is a UG5 graduation requirement and cannot be taken as a Free Elective.</p>
+                            </div>
+                        </div>
+
+                        <div class="faq-item">
+                            <button class="faq-question" onclick="toggleFAQ(this)">
+                                Can student apply for advanced standing, course exemption or credit transfer?
+                                <svg class="faq-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <polyline points="6 9 12 15 18 9"></polyline>
+                                </svg>
+                            </button>
+                            <div class="faq-answer">
+                                <p>Advanced standing is only applicable if the student has successfully completed the AILT1001 at HKU before re-admission.
+                                Course exemption or credit transfer applications are not applicable to AILT1001.</p>
+                            </div>
+                        </div>
+
+                        <div class="faq-item">
+                            <button class="faq-question" onclick="toggleFAQ(this)">
+                                Can I enrol the course AILT1001 with timetable clash?
+                                <svg class="faq-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <polyline points="6 9 12 15 18 9"></polyline>
+                                </svg>
+                            </button>
+                            <div class="faq-answer">
+                                <p>Enrolment will be rejected by SIS if there is a timetable clash. Please consider registering for other available
+                                subclasses that do not conflict with your schedule. There are subclasses offered in Semester One, Semester Two and
+                                Summer Semester.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+            </section>
+        </div>
+    </div>
+
+    <div class="footer">
+        <div class="footer-social">
+            <a href="https://www.instagram.com/hku_ai_literacy" class="footer-social-icon" target="_blank" rel="noopener" aria-label="Instagram">
+                <img src="img/home/instagram.webp" alt="Instagram">
+            </a>
+            <a href="https://xhslink.com/m/56ouP1yVgWK" class="footer-social-icon" target="_blank" rel="noopener" aria-label="RedNote">
+                <img src="img/home/rednote.png" alt="RedNote">
+            </a>
+        </div>
+        © 2026 School of Computing and Data Science, The University of Hong Kong
+    </div>
+
+    <script>
+        // Lecture timetable: toggle between Semester 1, Semester 2, and Summer
+        function switchSemester(sem) {
+            const table = document.querySelector('.schedule-table');
+            if (table) table.className = 'schedule-table view-' + sem;
+            document.querySelectorAll('.sem-btn').forEach(function (b) {
+                b.classList.toggle('active', b.dataset.sem === sem);
+            });
+        }
+
+        let currentSlide = 0;
+        const totalSlides = 6;
+        let touchStartX = 0;
+        let touchEndX = 0;
+        let autoSlideInterval;
+
+        const carouselWrapper = document.getElementById('carouselWrapper');
+        const dots = document.querySelectorAll('.carousel-dot');
+        const carouselCaption = document.getElementById('carouselCaption');
+        const slideCaptions = Array.from(document.querySelectorAll('.carousel-slide'))
+            .map(s => s.getAttribute('data-caption') || '');
+
+        function updateCarousel() {
+            carouselWrapper.style.transform = `translateX(-${currentSlide * (100 / 6)}%)`;
+            dots.forEach((dot, index) => {
+                dot.classList.toggle('active', index === currentSlide);
+            });
+            if (carouselCaption) carouselCaption.textContent = slideCaptions[currentSlide] || '';
+        }
+
+        function nextSlide() {
+            currentSlide = (currentSlide + 1) % totalSlides;
+            updateCarousel();
+            resetAutoSlide();
+        }
+
+        function prevSlide() {
+            currentSlide = (currentSlide - 1 + totalSlides) % totalSlides;
+            updateCarousel();
+            resetAutoSlide();
+        }
+
+        function goToSlide(index) {
+            currentSlide = index;
+            updateCarousel();
+            resetAutoSlide();
+        }
+
+        const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+
+        function resetAutoSlide() {
+            clearInterval(autoSlideInterval);
+            if (reducedMotion.matches) return; // no autoplay for reduced-motion users
+            autoSlideInterval = setInterval(nextSlide, 5000);
+        }
+
+        function stopAutoSlide() {
+            clearInterval(autoSlideInterval);
+        }
+
+        // Touch swipe support
+        carouselWrapper.addEventListener('touchstart', (e) => {
+            touchStartX = e.changedTouches[0].screenX;
+        });
+
+        carouselWrapper.addEventListener('touchend', (e) => {
+            touchEndX = e.changedTouches[0].screenX;
+            handleSwipe();
+        });
+
+        function handleSwipe() {
+            const swipeThreshold = 50;
+            const diff = touchStartX - touchEndX;
+            
+            if (Math.abs(diff) > swipeThreshold) {
+                if (diff > 0) {
+                    nextSlide();
+                } else {
+                    prevSlide();
+                }
+            }
+        }
+
+        // Pause autoplay while hovering the carousel
+        const carouselContainer = document.getElementById('carouselContainer');
+        carouselContainer.addEventListener('mouseenter', stopAutoSlide);
+        carouselContainer.addEventListener('mouseleave', resetAutoSlide);
+
+        // Pause autoplay when the tab is in the background
+        document.addEventListener('visibilitychange', () => {
+            if (document.hidden) {
+                stopAutoSlide();
+            } else {
+                resetAutoSlide();
+            }
+        });
+
+        // Keyboard navigation when the carousel has focus
+        carouselContainer.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowLeft') {
+                e.preventDefault();
+                prevSlide();
+            } else if (e.key === 'ArrowRight') {
+                e.preventDefault();
+                nextSlide();
+            }
+        });
+
+        // Start auto-slide
+        resetAutoSlide();
+
+        // FAQ Toggle Function — each item toggles independently;
+        // opening one does not close the others
+        function toggleFAQ(button) {
+            const answer = button.parentElement.querySelector('.faq-answer');
+            button.classList.toggle('active');
+            answer.classList.toggle('active');
+        }
+
+        // ---- Single-page views: Home (hero + About + Assessment) + click-only sections ----
+        const navLinkEls = document.querySelectorAll('.nav-links a[href^="#"]');
+        const VIEWS = ['home', 'enrollment', 'schedule', 'contact', 'faq'];
+        const HOME_SECTIONS = ['about', 'assessment']; // reachable via #hash, live inside Home
+
+        function setActiveNav(name) {
+            navLinkEls.forEach(function (link) {
+                var href = link.getAttribute('href');
+                link.classList.toggle('active', href === '#' + name || (name === 'home' && link.hasAttribute('data-home')));
+            });
+        }
+
+        var siteHeader = document.querySelector('header');
+        var currentView = 'home';
+        function updateNavBg() {
+            if (currentView === 'home') {
+                siteHeader.classList.toggle('scrolled', window.scrollY > window.innerHeight * 0.6);
+            } else {
+                // Sub-views: transparent nav over the banner, solid once scrolled past it
+                var banner = document.querySelector('.view-block[data-view="' + currentView + '"] .section-banner');
+                if (banner) {
+                    siteHeader.classList.toggle('scrolled', banner.getBoundingClientRect().bottom <= siteHeader.offsetHeight);
+                } else {
+                    siteHeader.classList.add('scrolled');
+                }
+            }
+        }
+        window.addEventListener('scroll', updateNavBg, { passive: true });
+        window.addEventListener('resize', updateNavBg, { passive: true });
+
+        // Keep the section banners flush under the (variable-height) fixed nav
+        function setNavHeight() {
+            document.documentElement.style.setProperty('--nav-h', siteHeader.offsetHeight + 'px');
+        }
+        window.addEventListener('resize', setNavHeight, { passive: true });
+        window.addEventListener('load', setNavHeight);
+        setNavHeight();
+
+        function showView(name, sectionId) {
+            currentView = name;
+            document.querySelectorAll('.view-block').forEach(function (el) {
+                el.classList.toggle('is-visible', el.dataset.view === name);
+            });
+            setActiveNav(name);
+            window.scrollTo(0, 0);
+            if (sectionId) {
+                var el = document.getElementById(sectionId);
+                if (el) el.scrollIntoView();
+            }
+            updateNavBg();
+            // Pause the hero carousel while off Home; resume it on Home
+            if (name === 'home') { resetAutoSlide(); } else { stopAutoSlide(); }
+            // let layout-dependent widgets (assessment donut/beam) recompute now visible
+            window.dispatchEvent(new Event('resize'));
+        }
+
+        function routeView() {
+            var h = location.hash.replace('#', '');
+            if (VIEWS.indexOf(h) !== -1) { showView(h); return; }
+            if (HOME_SECTIONS.indexOf(h) !== -1) { showView('home', h); return; }
+            showView('home');
+        }
+        window.addEventListener('hashchange', routeView);
+        routeView();
+
+        // Home link + logo return to the Home view
+        document.querySelectorAll('[data-home]').forEach(function (el) {
+            el.addEventListener('click', function (e) {
+                e.preventDefault();
+                history.replaceState(null, '', location.pathname + location.search);
+                showView('home');
+            });
+        });
+
+        // Nav view links always open their view from the top (even when already on it).
+        // The Home link carries data-home and is handled above (clean, hash-less URL),
+        // so skip it here to avoid double-firing and a leftover #home in the URL.
+        document.querySelectorAll('.nav-links a[href^="#"]').forEach(function (a) {
+            if (a.hasAttribute('data-home')) return;
+            a.addEventListener('click', function (e) {
+                var name = a.getAttribute('href').slice(1);
+                if (VIEWS.indexOf(name) === -1) return;
+                e.preventDefault();
+                history.replaceState(null, '', '#' + name);
+                showView(name);
+            });
+        });
+
+        // Mobile hamburger menu open/close
+        (function () {
+            var toggle = document.getElementById('navToggle');
+            var closeBtn = document.getElementById('navClose');
+            var links = document.getElementById('navLinks');
+            if (!toggle || !links) return;
+            function open() { links.classList.add('open'); document.body.classList.add('nav-open'); toggle.setAttribute('aria-expanded', 'true'); }
+            function close() { links.classList.remove('open'); document.body.classList.remove('nav-open'); toggle.setAttribute('aria-expanded', 'false'); }
+            toggle.addEventListener('click', open);
+            if (closeBtn) closeBtn.addEventListener('click', close);
+            links.addEventListener('click', function (e) { if (e.target.closest('a')) close(); });
+            document.addEventListener('keydown', function (e) { if (e.key === 'Escape') close(); });
+            // Click anywhere outside the open drawer (and not on the toggle) closes it
+            document.addEventListener('click', function (e) {
+                if (!links.classList.contains('open')) return;
+                if (links.contains(e.target) || toggle.contains(e.target)) return;
+                close();
+            });
+        })();
+
+        // ==== Course Assessment interactive donut ====
+        (function () {
+        const SLICES = [
+            {
+                key: 'part', pct: 20, color: getCSS('--c-part'), mid: '#0a9dbd', light: '#17bdd8', tint: '#e6f7fb',
+                title: 'Participation',
+                icon: '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>',
+                html: `<p>Each lecture includes a short in-class activity.
+                            Your best six activity scores will count toward your participation.</p>`
+            },
+            {
+                key: 'group', pct: 40, color: getCSS('--c-group'), mid: '#1060a8', light: '#3b82c4', tint: '#e8f0f8',
+                title: 'Group Project',
+                icon: '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path><line x1="3" y1="6" x2="21" y2="6"></line><path d="M16 10a4 4 0 0 1-8 0"></path></svg>',
+                html: `<p>Students will be assigned to project teams within their studio subclass to collaborate on an AI project.</p>`
+            },
+            {
+                key: 'final', pct: 40, color: getCSS('--c-final'), mid: '#7d3fe0', light: '#9f6ef2', tint: '#f1eafc',
+                title: 'Final Test',
+                icon: '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14,2 14,8 20,8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg>',
+                html: `<p>The final test will take place during the last lecture of the term.</p>`
+            }
+        ];
+
+        function getCSS(v) {
+            return getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+        }
+
+        const stage = document.querySelector('.pie-side-wrap');
+        const holder = document.getElementById('pieHolder');
+        const detail = document.getElementById('pieDetail');
+        const connectorSvg = document.getElementById('connector');
+        const beam = document.getElementById('beam');
+
+        const SIZE = 380, R = SIZE / 2 - 10, DONUT_R = R * 0.55;
+        const CX = SIZE / 2, CY = SIZE / 2;
+        const svgNS = 'http://www.w3.org/2000/svg';
+
+        const svg = document.createElementNS(svgNS, 'svg');
+        svg.setAttribute('class', 'pie');
+        svg.setAttribute('width', '100%');
+        svg.setAttribute('height', '100%');
+        svg.setAttribute('viewBox', `0 0 ${SIZE} ${SIZE}`);
+        holder.appendChild(svg);
+
+        // gradient fill per slice (base -> mid -> light, diagonal) —
+        // three stops keep the gradient visible across each slice's full sweep
+        const defs = document.createElementNS(svgNS, 'defs');
+        svg.appendChild(defs);
+        SLICES.forEach(s => {
+            const g = document.createElementNS(svgNS, 'linearGradient');
+            g.setAttribute('id', 'grad-' + s.key);
+            g.setAttribute('x1', '0'); g.setAttribute('y1', '0');
+            g.setAttribute('x2', '1'); g.setAttribute('y2', '1');
+            [[0, s.color], [55, s.mid], [100, s.light]].forEach(([o, c]) => {
+                const st = document.createElementNS(svgNS, 'stop');
+                st.setAttribute('offset', o + '%');
+                st.setAttribute('stop-color', c);
+                g.appendChild(st);
+            });
+            defs.appendChild(g);
+        });
+
+        // rotating group: lets the chart spin so the clicked slice can face
+        // the side panel; the centre text stays outside it, upright
+        const rotG = document.createElementNS(svgNS, 'g');
+        rotG.style.transformOrigin = `${CX}px ${CY}px`;
+        rotG.style.transition = 'transform 0.5s ease';
+        svg.appendChild(rotG);
+
+        const labels = [];
+        const paths = {};
+        let selected = null;
+        let cumRot = 0; // cumulative clockwise rotation (deg)
+        let angle = -90; // start at 12 o'clock
+
+        SLICES.forEach(s => {
+            const sweep = s.pct / 100 * 360;
+            const a0 = angle * Math.PI / 180;
+            const a1 = (angle + sweep) * Math.PI / 180;
+            const mid = (angle + sweep / 2) * Math.PI / 180;
+            const large = sweep > 180 ? 1 : 0;
+
+            const p = document.createElementNS(svgNS, 'path');
+            p.setAttribute('d', [
+                `M ${CX + DONUT_R * Math.cos(a0)} ${CY + DONUT_R * Math.sin(a0)}`,
+                `L ${CX + R * Math.cos(a0)} ${CY + R * Math.sin(a0)}`,
+                `A ${R} ${R} 0 ${large} 1 ${CX + R * Math.cos(a1)} ${CY + R * Math.sin(a1)}`,
+                `L ${CX + DONUT_R * Math.cos(a1)} ${CY + DONUT_R * Math.sin(a1)}`,
+                `A ${DONUT_R} ${DONUT_R} 0 ${large} 0 ${CX + DONUT_R * Math.cos(a0)} ${CY + DONUT_R * Math.sin(a0)}`,
+                'Z'
+            ].join(' '));
+            p.setAttribute('fill', 'url(#grad-' + s.key + ')');
+            p.dataset.mid = mid;
+            p.dataset.a0 = a0;
+            p.dataset.a1 = a1;
+            p.addEventListener('click', () => select(selected === s.key ? null : s.key));
+            p.addEventListener('mouseenter', () => hoverSlice(s.key, true));
+            p.addEventListener('mouseleave', () => hoverSlice(s.key, false));
+            rotG.appendChild(p);
+            paths[s.key] = p;
+
+            // percentage label on the ring
+            const labelR = (R + DONUT_R) / 2;
+            const t = document.createElementNS(svgNS, 'text');
+            t.setAttribute('x', CX + labelR * Math.cos(mid));
+            t.setAttribute('y', CY + labelR * Math.sin(mid) + 6);
+            t.setAttribute('text-anchor', 'middle');
+            t.setAttribute('class', 'slice-label');
+            t.textContent = s.pct + '%';
+            t.dataset.key = s.key;
+            t.dataset.lx = CX + labelR * Math.cos(mid);
+            t.dataset.ly = CY + labelR * Math.sin(mid) + 6;
+            // counter-rotates against the group so the % stays upright
+            t.style.transformOrigin = `${CX + labelR * Math.cos(mid)}px ${CY + labelR * Math.sin(mid) + 6}px`;
+            t.style.transition = 'transform 0.5s ease';
+            rotG.appendChild(t);
+            labels.push(t);
+
+            angle += sweep;
+        });
+
+        // center text group (in the donut hole)
+        const center = document.createElementNS(svgNS, 'g');
+        center.setAttribute('pointer-events', 'none');
+        svg.appendChild(center);
+
+        // callout descriptors: thin leader line from each slice to its label,
+        // positioned just outside the slice's mid-angle; clicking selects it
+        const calloutG = document.createElementNS(svgNS, 'g');
+        calloutG.setAttribute('class', 'callout-g');
+        svg.appendChild(calloutG);
+        const calloutItems = {};
+        SLICES.forEach(s => {
+            const mid = parseFloat(paths[s.key].dataset.mid);
+            const dir = Math.cos(mid) >= 0 ? 1 : -1; // label to the right or left
+            const x1 = CX + (R + 4) * Math.cos(mid), y1 = CY + (R + 4) * Math.sin(mid);
+            const x2 = CX + (R + 48) * Math.cos(mid), y2 = CY + (R + 48) * Math.sin(mid);
+            const x3 = x2 + 30 * dir; // horizontal elbow
+
+            const item = document.createElementNS(svgNS, 'g');
+            item.setAttribute('class', 'callout-item');
+            calloutG.appendChild(item);
+            calloutItems[s.key] = item;
+
+            const line = document.createElementNS(svgNS, 'polyline');
+            line.setAttribute('points', `${x1},${y1} ${x2},${y2} ${x3},${y2}`);
+            line.setAttribute('stroke', s.color);
+            item.appendChild(line);
+
+            const label = document.createElementNS(svgNS, 'text');
+            label.setAttribute('x', x3 + 6 * dir);
+            label.setAttribute('y', y2 + 5.5);
+            label.setAttribute('text-anchor', dir > 0 ? 'start' : 'end');
+            label.textContent = `${s.title} (${s.pct}%)`;
+            label.addEventListener('click', () => select(selected === s.key ? null : s.key));
+            item.appendChild(label);
+        });
+
+        // hover: stretch the slice, its % label, and its callout together,
+        // pulled slightly away from the pie to open a gap (like the pop-out)
+        function hoverSlice(key, on) {
+            if (selected) return; // hover set only applies to the resting pie
+            const mid = parseFloat(paths[key].dataset.mid);
+            const gx = 8 * Math.cos(mid), gy = 8 * Math.sin(mid);
+            const move = `translate(${gx}px, ${gy}px) scale(1.045)`;
+
+            paths[key].classList.toggle('hovered', on);
+            paths[key].style.transform = on ? move : '';
+            calloutItems[key].style.transform = on ? move : '';
+
+            const label = labels.find(l => l.dataset.key === key);
+            if (label) {
+                // emulate scaling about the pie centre + the gap offset
+                const dx = (parseFloat(label.dataset.lx) - CX) * 0.045 + gx;
+                const dy = (parseFloat(label.dataset.ly) - CY) * 0.045 + gy;
+                label.style.transitionDuration = '0.25s';
+                label.style.transform = on
+                    ? `translate(${dx}px, ${dy}px) scale(1.045)`
+                    : `rotate(${-cumRot}deg)`;
+            }
+        }
+
+        function setCenter(s) {
+            center.innerHTML = '';
+            function txt(y, cls, str, color) {
+                const t = document.createElementNS(svgNS, 'text');
+                t.setAttribute('x', CX); t.setAttribute('y', y);
+                t.setAttribute('text-anchor', 'middle');
+                t.setAttribute('class', cls);
+                if (color) t.setAttribute('fill', color);
+                t.textContent = str;
+                center.appendChild(t);
+                return t;
+            }
+            if (s) {
+                // count-up animation for the percentage
+                const t = txt(CY - 6, 'center-pct', '0%', s.color);
+                txt(CY + 22, 'center-title', s.title);
+                const start = performance.now();
+                (function anim() {
+                    const k = Math.min(1, (performance.now() - start) / 500);
+                    t.textContent = Math.round(s.pct * k) + '%';
+                    if (k < 1 && t.isConnected) requestAnimationFrame(anim);
+                })();
+            } else {
+                txt(CY - 10, 'center-pct', '100%', getCSS('--muted')); /* slate: distinct from all slice colors */
+                txt(CY + 16, 'center-title', 'Course Total');
+                txt(CY + 40, 'center-hint', 'Click a slice');
+            }
+        }
+        setCenter(null);
+
+        // ---- Connector arrow: thin line from the docked pie to the panel.
+        // Drawn from the SETTLED geometry (not the live animation), so it
+        // appears immediately, never moves, and only changes color. ----
+        function updateBeam() {
+            const s = selected ? SLICES.find(x => x.key === selected) : null;
+            if (!s) {
+                beam.setAttribute('d', '');
+                return;
+            }
+            const stageRect = stage.getBoundingClientRect();
+            connectorSvg.setAttribute('viewBox', `0 0 ${stageRect.width} ${stageRect.height}`);
+            connectorSvg.setAttribute('width', stageRect.width);
+            connectorSvg.setAttribute('height', stageRect.height);
+
+            const hr = holder.getBoundingClientRect();
+            const dr = detail.getBoundingClientRect();
+
+            // final docked pie centre and scale (offsetWidth ignores transforms)
+            const px = 0.25 * stageRect.width;
+            const py = hr.top + hr.height / 2 - stageRect.top; // vertical centre is stable
+            const scale = (holder.offsetWidth * 0.95) / SIZE;
+            const r = R * scale;
+
+            // the selected slice always settles facing this direction
+            // (same aim the rotation targets: panel centre, ~10° above)
+            const theta = Math.atan2(
+                (dr.top + dr.height / 2 - stageRect.top) - py,
+                (dr.left + dr.width / 2 - stageRect.left) - px
+            ) - 10 * Math.PI / 180;
+
+            const pcx = px + 9 * scale * Math.cos(theta);
+            const pcy = py + 9 * scale * Math.sin(theta);
+
+            // callout-style leader line with a small gap at both ends;
+            // the first (angled) cut is longer than the second (horizontal)
+            const x3 = dr.left - stageRect.left - 8;     // 8px clear of the panel
+            const t0 = r + 6;                            // 6px clear of the rim
+            const t3 = (x3 - pcx) / Math.cos(theta);     // reach of the ray at the panel gap
+            const t2 = t0 + (t3 - t0) * 0.6;             // elbow at 60% of the run
+            const x1 = pcx + t0 * Math.cos(theta);
+            const y1 = pcy + t0 * Math.sin(theta);
+            const x2 = pcx + t2 * Math.cos(theta);
+            const y2 = pcy + t2 * Math.sin(theta);
+
+            beam.setAttribute('d', `M ${x1} ${y1} L ${x2} ${y2} L ${x3} ${y2}`);
+            beam.setAttribute('stroke', s.color);
+            beam.setAttribute('stroke-opacity', '0.9');
+            beam.setAttribute('stroke-width', '1.5');
+            beam.setAttribute('stroke-linecap', 'round');
+            beam.setAttribute('stroke-linejoin', 'round');
+        }
+
+        window.addEventListener('resize', updateBeam);
+
+        function select(key) {
+            selected = key;
+            const s = key ? SLICES.find(x => x.key === key) : null;
+
+            // clear any lingering hover-stretch state
+            SLICES.forEach(x => {
+                paths[x.key].classList.remove('hovered');
+                calloutItems[x.key].style.transform = '';
+            });
+
+            // slice highlight: pop the selected slice, fade the rest
+            SLICES.forEach(x => {
+                const p = paths[x.key];
+                if (!key) {
+                    p.classList.remove('faded');
+                    p.style.transform = '';
+                } else if (x.key === key) {
+                    p.classList.remove('faded');
+                    const mid = parseFloat(p.dataset.mid);
+                    p.style.transform = `translate(${Math.cos(mid) * 9}px, ${Math.sin(mid) * 9}px)`;
+                } else {
+                    p.classList.add('faded');
+                    p.style.transform = '';
+                }
+            });
+
+            setCenter(s);
+
+            // hide the callout descriptors while a slice is selected
+            calloutG.classList.toggle('hidden', !!s);
+
+            // dock the pie left + reveal the panel, or return to centre
+            stage.classList.toggle('active', !!s);
+            if (s) {
+                detail.innerHTML = `<div class="detail-head" style="color:${s.color}">${s.icon}<h3 style="color:${s.color}">${s.title} (${s.pct}%)</h3></div>
+                                    ${s.html}`;
+                detail.style.background = s.tint;
+                detail.style.borderColor = s.color;
+            } else {
+                // keep the content while the panel fades out
+                setTimeout(() => {
+                    if (!selected) {
+                        detail.innerHTML = '<p class="hint">Click a slice to see its details here.</p>';
+                        detail.style.background = '#fafbfd';
+                        detail.style.borderColor = '';
+                    }
+                }, 300);
+            }
+
+            // rotate the chart in whichever direction needs the smaller
+            // angle (<=180°): clockwise if that's shorter, otherwise
+            // counter-clockwise — same rule for returning to the original
+            let targetAbs = 0; // absolute orientation to reach (deg)
+            if (s) {
+                const sr = stage.getBoundingClientRect();
+                const hrr = holder.getBoundingClientRect();
+                const drr = detail.getBoundingClientRect();
+                const dockCx = 0.25 * sr.width; // pie centre once docked left
+                const pieCy = hrr.top + hrr.height / 2 - sr.top;
+                const thetaT = Math.atan2(
+                    (drr.top + drr.height / 2 - sr.top) - pieCy,
+                    (drr.left + drr.width / 2 - sr.left) - dockCx
+                ) - 10 * Math.PI / 180; // aim ~10° above the panel centre
+                targetAbs = (thetaT - parseFloat(paths[s.key].dataset.mid)) * 180 / Math.PI;
+            }
+            const spin = (((targetAbs - cumRot) % 360) + 540) % 360 - 180; // shortest direction
+            cumRot += spin;
+            const dur = 0.3 + (Math.abs(spin) / 360) * 0.5; // longer spins get a little more time
+            rotG.style.transitionDuration = dur + 's';
+            rotG.style.transform = `rotate(${cumRot}deg)`;
+            labels.forEach(l => {
+                l.style.transitionDuration = dur + 's';
+                if (s && l.dataset.key === s.key) {
+                    // follow the selected slice's pop-out so the % stays
+                    // centred within the shifted slice area
+                    const m = parseFloat(paths[s.key].dataset.mid);
+                    l.style.transform = `translate(${Math.cos(m) * 9}px, ${Math.sin(m) * 9}px) rotate(${-cumRot}deg)`;
+                } else {
+                    l.style.transform = `rotate(${-cumRot}deg)`;
+                }
+            });
+
+            // the arrow appears right away at its settled position and
+            // stays put; switching slices only changes its color
+            if (s) {
+                updateBeam();
+                beam.style.opacity = 1;
+            } else {
+                beam.style.opacity = 0;
+                beam.setAttribute('d', '');
+            }
+        }
+
+    
+        })();
+
+        // Colour-code subclass tags in the schedule table (blue = normal, brown = Shanghai)
+        document.querySelectorAll('.schedule-table .subclass-cell').forEach(function (cell) {
+            var t = cell.textContent.trim();
+            if (!t) return;
+            var isSh = t.charAt(0) === '#';
+            cell.innerHTML = '<span class="subclass-pill' + (isSh ? ' subclass-pill--sh' : '') + '">' + t + '</span>';
+        });
+    </script>
+</body>
+</html>
