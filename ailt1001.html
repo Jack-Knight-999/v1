@@ -160,7 +160,7 @@
 
         h2 {
             font-family: inherit;
-            color: #02206a;
+            color: #0a1a3f;
             font-weight: 800;
         }
         h2::after {
@@ -486,11 +486,13 @@
         }
         .cic-callout img { width: 72px; height: 72px; flex-shrink: 0; }
         .cic-callout p { margin: 0; font-size: 0.92rem; color: #4b3a13; }
+        .cic-text p + p { margin-top: 0.85rem; }
         .cic-callout p strong { color: #b45309; }
         .cic-callout p a { color: #b45309; font-weight: 600; text-decoration: none; }
         .cic-callout p a:hover { text-decoration: underline; }
         @media (max-width: 640px) {
-            .cic-callout { flex-direction: column; align-items: center; text-align: center; }
+            .cic-callout { flex-direction: column; align-items: center; }
+            .cic-text { text-align: left; width: 100%; }
             .hero-cic-seal { padding: 0.3rem; }
         }
 
@@ -521,7 +523,7 @@
             height: 100%;
             object-fit: cover;
             display: block;
-            filter: brightness(0.86);   /* lightened ~20% to match the SH page */
+            filter: brightness(0.9);
         }
 
         /* Arrows + dots grouped in one centered row at the bottom */
@@ -732,13 +734,13 @@
         }
 
         .procedure-step:hover .step-number,
-        .procedure-step:focus-within .step-number {
+        .procedure-step:has(:focus-visible) .step-number {
             color: #ffffff;
             border-color: #004a8f;
         }
 
         .procedure-step:hover .step-number::before,
-        .procedure-step:focus-within .step-number::before {
+        .procedure-step:has(:focus-visible) .step-number::before {
             animation: step-fill 0.1s linear forwards;
         }
 
@@ -795,9 +797,8 @@
         }
 
         .visit-link {
-            display: inline-flex;
-            align-items: center;
-            gap: 0.25rem;
+            display: inline;            /* flow as inline text so a long link wraps mid-phrase
+                                           and trailing punctuation (".", " for …") stays put */
             color: #2563eb;
             text-decoration: none;
             font-weight: normal;
@@ -1949,6 +1950,9 @@
                 font-size: 2.25rem;
                 white-space: normal;
             }
+            /* Two-line hero eyebrow + title on mobile */
+            .hero-eyebrow .he-l2 { display: block; }
+            .hero-content h1 .h1-l2 { display: block; }
 
             /* Image carousel adjustments */
             .carousel-controls {
@@ -1965,31 +1969,39 @@
                 right: 0.5rem;
             }
             
-            /* Procedure steps */
+            /* Procedure steps: stack the number above each block so the block
+               gets the full width (no side-by-side circle + chain line) */
             .procedure-step {
-                flex-direction: row !important;
+                flex-direction: column !important;
                 text-align: left;
-                gap: 1rem;
-                align-items: flex-start;
+                gap: 0;                  /* circle sits flush on the top edge of its block */
+                align-items: center;     /* centre the number above the block */
             }
-            
+
+            /* drop the chained connector line between circles on mobile */
+            .procedure-step::after { display: none; }
+
             .step-number {
                 margin-bottom: 0;
-                align-self: flex-start;
+                align-self: center;
                 flex-shrink: 0;
             }
-            
+
             .step-content {
                 text-align: left;
                 width: 100%;
                 flex: 1;
             }
-            
+
             .step-content h4 {
                 text-align: left;
                 width: 100%;
+                padding-right: 0;        /* full width so short titles stay on one line */
+                font-size: 1.05rem;
             }
-            
+            /* only the step that carries a "Done!" badge needs right clearance */
+            .step-content:has(.step-done) h4 { padding-right: 4rem; }
+
             .step-content p {
                 text-align: left;
             }
@@ -2034,6 +2046,22 @@
             /* Extra small screens */
             .nav {
                 padding: 0.75rem 1rem;
+                gap: 0.5rem;
+            }
+
+            /* Shrink the left cluster + hamburger so nothing is clipped at the right edge */
+            .nav-logo-wrap { gap: 0.45rem; }
+            .nav-logo { height: 34px; }
+            .hero-cic-seal { padding: 0.2rem; gap: 0.35rem; }
+            .hero-cic-seal img { width: 26px; height: 26px; }
+            .hero-cic-seal span { font-size: 0.6rem; }
+            .hero-cic-seal span small { font-size: 0.54rem; }
+            .nav-toggle svg { width: 26px; height: 26px; }
+
+            .hero-eyebrow {
+                font-size: 0.6rem;
+                letter-spacing: 0.09em;
+                margin-bottom: 0.8rem;
             }
 
             .hero-content h1 {
@@ -2181,22 +2209,22 @@
         <div class="carousel-container" id="carouselContainer" tabindex="0" role="region" aria-roledescription="carousel" aria-label="Poster exhibition photo carousel">
             <div class="carousel-wrapper" id="carouselWrapper">
                 <div class="carousel-slide" data-caption="Interactive Lecture">
-                    <img src="img/home/01.jpg" alt="Interactive lecture session" />
+                    <img src="img/home/01.webp" alt="Interactive lecture session" fetchpriority="high" />
                 </div>
                 <div class="carousel-slide" data-caption="Project Exhibition">
-                    <img src="img/home/02.jpg" alt="Project exhibition 1" loading="lazy" />
+                    <img src="img/home/02.webp" alt="Project exhibition 1" loading="lazy" />
                 </div>
                 <div class="carousel-slide" data-caption="Project Exhibition">
-                    <img src="img/home/03.jpg" alt="Project exhibition 2" loading="lazy" />
+                    <img src="img/home/03.webp" alt="Project exhibition 2" loading="lazy" />
                 </div>
                 <div class="carousel-slide" data-caption="Project Exhibition">
-                    <img src="img/home/04.jpg" alt="Project exhibition 3" loading="lazy" />
+                    <img src="img/home/04.webp" alt="Project exhibition 3" loading="lazy" />
                 </div>
                 <div class="carousel-slide" data-caption="Project Exhibition">
-                    <img src="img/home/05.jpg" alt="Project exhibition 4" loading="lazy" />
+                    <img src="img/home/05.webp" alt="Project exhibition 4" loading="lazy" />
                 </div>
                 <div class="carousel-slide" data-caption="Project Exhibition">
-                    <img src="img/home/06.jpg" alt="Project exhibition 5" loading="lazy" />
+                    <img src="img/home/06.webp" alt="Project exhibition 5" loading="lazy" />
                 </div>
             </div>
             <span class="carousel-caption" id="carouselCaption">Interactive Lecture</span>
@@ -2215,8 +2243,8 @@
         </div>
 
         <div class="hero-content">
-            <span class="hero-eyebrow">The University of Hong Kong &middot; School of Computing &amp; Data Science</span>
-            <h1>Artificial Intelligence Literacy I</h1>
+            <span class="hero-eyebrow"><span class="he-l1">The University of Hong Kong &middot;</span> <span class="he-l2">School of Computing &amp; Data Science</span></span>
+            <h1>Artificial Intelligence <span class="h1-l2">Literacy I</span></h1>
         </div>
     </section>
 
@@ -2235,10 +2263,12 @@
                 provide guided, hands-on opportunities to apply them through project work. <a href="#enrollment" class="enroll-inline">Enrol Now <span aria-hidden="true">&rarr;</span></a></p>
                 <div class="cic-callout">
                     <img src="img/home/cic.webp" alt="Communication-Intensive Course badge">
-                    <p>This course is a <strong><a href="https://cics.hku.hk/home/what-is-cic/" target="_blank" rel="noopener">Communication-Intensive Course (CiC)</a></strong> &mdash; 
-                        an official HKU badge for courses that build your <i>oral, written, visual, and digital</i> skills alongside the subject itself. 
-                        Additionally, it puts you on track for the <strong><a href="https://cics.hku.hk/distinguished-communicator-award/" target="_blank" rel="noopener">Distinguished Communicator Award</a></strong> &mdash;
-                        your chance to win a <strong>HKD 5,000</strong> cash prize and have the award noted on your <strong>HKU transcript</strong>!</p>
+                    <div class="cic-text">
+                        <p>This course is a <strong><a href="https://cics.hku.hk/home/what-is-cic/" target="_blank" rel="noopener">Communication-Intensive Course (CiC)</a></strong> &mdash;
+                            an official HKU badge for courses that build your <i>oral, written, visual, and digital</i> skills alongside the subject itself.</p>
+                        <p>Additionally, it puts you on track for the <strong><a href="https://cics.hku.hk/distinguished-communicator-award/" target="_blank" rel="noopener">Distinguished Communicator Award</a></strong> &mdash;
+                            your chance to win a <strong>HKD 5,000</strong> cash prize and have the award noted on your <strong>HKU transcript</strong>!</p>
+                    </div>
                 </div>
             </section>
         </div>
@@ -2511,7 +2541,7 @@
 
                     <div class="policy-section">
                         <h4>Bad weather arrangements</h4>
-                        <p>Please visit <a href="http://www.exam.hku.hk/a2_badweather.php" class="visit-link" target="_blank">http://www.exam.hku.hk/a2_badweather.php</a> for class arrangements during bad weather.</p>
+                        <p>Please visit <a href="http://www.exam.hku.hk/a2_badweather.php" class="visit-link" target="_blank">the Examination Office</a> for class arrangements during bad weather.</p>
                     </div>
                 </div>
             </section>
@@ -2614,10 +2644,7 @@
                                         <circle cx="12" cy="12" r="10"></circle>
                                         <path d="m9 12 2 2 4-4"></path>
                                     </svg>
-                                    For the University's Regulations Governing Students' Academic Conduct Concerning Assessment, please refer to 
-                                    <a href="https://calendar.hku.hk/regulations-governing-students-academic-conduct-concerning-assessment/" target="_blank" style="color: #0369a1; text-decoration: underline; font-weight: 600;">
-                                        https://calendar.hku.hk/regulations-governing-students-academic-conduct-concerning-assessment/
-                                    </a>.
+                                    For the University's Regulations Governing Students' Academic Conduct Concerning Assessment, please refer to <a href="https://calendar.hku.hk/regulations-governing-students-academic-conduct-concerning-assessment/" target="_blank" style="color: #0369a1; text-decoration: underline; font-weight: 600;">the HKU Academic Conduct Page</a>.
                                 </p>
                             </div>
                         </div>
@@ -3317,6 +3344,7 @@
             label.textContent = `${s.title} (${s.pct}%)`;
             label.addEventListener('click', () => select(selected === s.key ? null : s.key));
             item.appendChild(label);
+
         });
 
         // hover: stretch the slice, its % label, and its callout together,
