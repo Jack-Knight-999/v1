@@ -139,6 +139,7 @@
             margin: 0;
             box-shadow: 0 6px 18px rgba(2, 32, 106, 0.25);
         }
+
         @media (max-width: 768px) {
             .section-banner { height: 242px; margin-bottom: 3rem; }
             .section-banner-title { font-size: 1.3rem; padding: 0.6rem 1.1rem; }
@@ -784,17 +785,9 @@
         }
         .step-content p:last-child { margin-bottom: 0; }
 
-        .step-done {
-            position: absolute;
-            top: 1.1rem;
-            right: 1.3rem;
-            background: #dcfce7;
-            color: #166534;
-            font-size: 0.72rem;
-            font-weight: 700;
-            padding: 0.2rem 0.6rem;
-            border-radius: 999px;
-        }
+        /* Stacked enrolment lines: render as separate lines (like the <br> they replaced);
+           mobile view adds breathing room between them (see the 768px block). */
+        .proc-line { display: block; }
 
         .visit-link {
             display: inline;            /* flow as inline text so a long link wraps mid-phrase
@@ -1031,15 +1024,12 @@
         }
 
         .special-notice {
-            background: #f0fdf4;
-            border: 1px solid #bbf7d0;
-            border-radius: 8px;
-            padding: 0.75rem 1.5rem;
-            margin: 1.5rem 0;
+            margin: 1rem 0;
         }
 
         .special-notice p {
             color: #166534;
+            text-align: left;
             margin: 0;
             line-height: 1.4;
         }
@@ -1266,16 +1256,35 @@
         }
 
         .important-notice {
-            background: #eff6ff;
-            border-left: 4px solid var(--hku-blue);
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-left: 4px solid #0a1a3f;
+            border-radius: 8px;
             padding: 1rem 1.5rem;
             margin: 2.75rem 0 1.5rem;
         }
 
         .important-notice .notice-text {
-            color: #1e3a5f;
+            color: #334155;
             line-height: 1.6;
             margin: 0;
+        }
+
+        .important-notice .notice-tag {
+            display: inline-block;
+            background: #0a1a3f;
+            color: #ffffff;
+            font-size: 0.7rem;
+            font-weight: 800;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+            line-height: 1;
+            text-align: center;
+            text-indent: 0.05em;   /* offset trailing letter-spacing so the word sits centred */
+            padding: 0.3rem 0.55rem;
+            border-radius: 5px;
+            margin-right: 0.5rem;
+            vertical-align: 1px;
         }
 
         .policy-section-assessment {
@@ -1291,86 +1300,6 @@
         .policy-section-assessment p {
             color: var(--text);
             margin: 0 0 0.5rem 0;
-        }
-
-        .clo-section {
-            margin-top: 0.5rem;
-            margin-bottom: 2.75rem;
-        }
-
-        .clo-section h4 {
-            color: var(--hku-blue);
-            font-size: 1.25rem;
-            font-weight: 700;
-            margin: 0 0 1rem 0;
-        }
-
-        .clo-list {
-            margin: 0;
-            padding: 0;
-            list-style: none;
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 1rem;
-        }
-
-        .clo-card {
-            display: flex;
-            align-items: stretch;
-            background: #ffffff;
-            border: 1px solid #e5e7eb;
-            border-radius: 10px;
-            overflow: hidden;
-            box-shadow: 0 2px 8px rgba(15, 23, 42, 0.05);
-            transition: transform 0.2s ease, box-shadow 0.2s ease;
-        }
-
-        .clo-card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 20px rgba(15, 23, 42, 0.10);
-        }
-
-        .clo-num {
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: flex-start;
-            padding: 1rem 1.1rem;
-            font-size: 2.2rem;
-            font-weight: 800;
-            line-height: 1;
-            color: rgba(255, 255, 255, 0.95);
-            border-right: 1px solid rgba(255, 255, 255, 0.35);
-            flex-shrink: 0;
-            min-width: 92px;
-        }
-
-        .clo-card.c1 .clo-num { background: linear-gradient(135deg, var(--c-part), #06b6d4); }
-        .clo-card.c2 .clo-num { background: linear-gradient(135deg, var(--c-group), #1e6fbd); }
-        .clo-card.c3 .clo-num { background: linear-gradient(135deg, var(--c-final), #8b5cf6); }
-
-        .clo-num small {
-            display: block;
-            font-size: 0.75rem;
-            font-weight: 700;
-            letter-spacing: 0.08em;
-            color: rgba(255, 255, 255, 0.9);
-            margin-bottom: 0.25rem;
-        }
-
-        .clo-text {
-            color: var(--text);
-            line-height: 1.5;
-            font-size: 0.9rem;
-            padding: 1rem 1.25rem;
-            display: flex;
-            align-items: center;
-        }
-
-        @media (max-width: 768px) {
-            .clo-list {
-                grid-template-columns: 1fr;
-            }
         }
 
         /* Academic Integrity Section Styles */
@@ -1542,19 +1471,22 @@
             border: 1px solid #e5e7eb;
             border-radius: 12px;
             padding: 1.5rem;
+            overflow: hidden;
             box-shadow: 0 1px 3px rgba(16, 42, 67, 0.06);
         }
 
+        /* Title sits in a full-width navy strip across the top of the card */
         .support-card-header {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            margin-bottom: 1.5rem;
+            background: #096b63;
+            margin: -1.5rem -1.5rem 1.5rem;
+            padding: 0.85rem 1.5rem;
+            text-align: left;
         }
 
         .support-card-header h4 {
             font-size: 1rem;
-            font-weight: 600;
+            font-weight: 700;
+            color: #ffffff;
             margin: 0;
         }
 
@@ -1996,16 +1928,17 @@
             .step-content h4 {
                 text-align: left;
                 width: 100%;
-                padding-right: 0;        /* full width so short titles stay on one line */
+                padding-right: 0;        /* full width so titles stay on one line */
                 font-size: 1.05rem;
             }
-            /* only the step that carries a "Done!" badge needs right clearance */
-            .step-content:has(.step-done) h4 { padding-right: 4rem; }
 
             .step-content p {
                 text-align: left;
             }
-            
+
+            /* Extra breathing room between stacked enrolment lines (mobile only) */
+            .proc-line + .proc-line { margin-top: 0.5rem; }
+
             /* Support cards */
             .support-card {
                 padding: 1.5rem;
@@ -2300,9 +2233,7 @@
                         <div class="step-number">2</div>
                         <div class="step-content">
                             <h4>Enrol in a Lecture via SIS</h4>
-                            <p>Log into <a class="visit-link" href="https://hkuportal.hku.hk/login.html" target="_blank">HKU Portal</a> > My Page > SIS Menu > Enrolment > Course Selection.
-                                <br>Search for <strong>AILT1001</strong> and pick a lecture time ("subclass").
-                                <br><strong>Help</strong>: See the <a class="visit-link" href="https://aas.hku.hk/course-enrollment/" target="_blank">SIS Course Selection Guide</a>.</p>
+                            <p><span class="proc-line">Log into <a class="visit-link" href="https://hkuportal.hku.hk/login.html" target="_blank">HKU Portal</a> > My Page > SIS Menu > Enrolment > Course Selection.</span><span class="proc-line">Search for <strong>AILT1001</strong> and pick a lecture time ("subclass").</span><span class="proc-line"><strong>Help</strong>: See the <a class="visit-link" href="https://aas.hku.hk/course-enrollment/" target="_blank">SIS Course Selection Guide</a>.</span></p>
                         </div>
                     </div>
 
@@ -2329,9 +2260,7 @@
                                         <div><strong>Exceptional Circumstances:</strong>
                                             If you have valid reasons (medical emergency, SIS issues, scheduling conflicts, etc.), email <a href="mailto:ailit@hku.hk" class="visit-link" target="_blank">ailit@hku.hk</a> during the enrolment window.
                                         </div>
-                                        <div><strong>Email Subject Line:</strong> AILT1001 Project Studio Exception Request - [Student ID] - Semester [1 or 2]
-                                            <br>Include supporting evidence with your request. The course team will review and provide individualized solutions if feasible.
-                                        </div>
+                                        <div><span class="proc-line"><strong>Email Subject Line:</strong> AILT1001 Project Studio Exception Request - [Student ID] - Semester [1 or 2]</span><span class="proc-line">Include supporting evidence with your request. The course team will review and provide individualized solutions if feasible.</span></div>
                                     </div>
                                 </div>
                             </div>
@@ -2341,7 +2270,6 @@
                     <div class="procedure-step">
                         <div class="step-number">5</div>
                         <div class="step-content">
-                            <span class="step-done">Done!</span>
                             <h4>Check Course Schedule and Finalise</h4>
                             <p>Check the <a href="#schedule" class="visit-link">course calendar</a> to ensure no timetable conflicts with other courses. Changes are not allowed after the Add/Drop Period.</p>
                         </div>
@@ -2519,7 +2447,7 @@
                         </tbody>
                     </table>
 
-                    <div class="special-notice" style="background-color:#f1f5df;">
+                    <div class="special-notice">
                         <p>#<i><strong>AILT1001-1SH, 2SH and SSH</strong></i> are mutually exclusive with other subclasses of <i><strong>AILT1001</strong></i>.
                         </p>
                     </div>
@@ -2553,24 +2481,6 @@
             <section id="assessment">
                 <h2>Course Assessment</h2>                
                 <div class="assessment-container">
-                    <div class="clo-section">
-                        <h4>Course Learning Outcomes (CLOs)</h4>
-                        <ul class="clo-list">
-                            <li class="clo-card c1">
-                                <span class="clo-num"><small>CLO</small>1</span>
-                                <span class="clo-text">Able to explain how AI works.</span>
-                            </li>
-                            <li class="clo-card c2">
-                                <span class="clo-num"><small>CLO</small>2</span>
-                                <span class="clo-text">Able to interact effectively with AI systems.</span>
-                            </li>
-                            <li class="clo-card c3">
-                                <span class="clo-num"><small>CLO</small>3</span>
-                                <span class="clo-text">Able to critically evaluate AI systems.</span>
-                            </li>
-                        </ul>
-                    </div>
-
                     <div class="pie-side-wrap">
                         <svg class="connector" id="connector">
                             <path id="beam" d="" fill="none"/>
@@ -2584,7 +2494,7 @@
                     </div>
 
                     <div class="important-notice">
-                        <p class="notice-text">To pass the course, students must receive a non-zero mark 
+                        <p class="notice-text"><span class="notice-tag">Important</span>To pass the course, students must receive a non-zero mark
                             for both the project and the final test. Attendance at the
                             final test and all project studio sessions is mandatory.</p>
                     </div>
@@ -2620,7 +2530,7 @@
                                     </li>
                                 </ol>
                                 <p style="margin-top: 1rem; color: #78350f; font-style: italic; font-size: 0.95rem;">
-                                    These rules apply to all forms of assessment, including assignments, projects, and in-class or online tests.
+                                    This policy applies to all assessments. Any permitted collaboration or use of external resources or AI tools will be stated explicitly in the relevant assessment instructions.
                                 </p>
                             </div>
 
@@ -2670,11 +2580,6 @@
                     <div class="support-grid">
                         <div class="support-card">
                             <div class="support-card-header">
-                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2">
-                                    <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
-                                    <polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline>
-                                    <line x1="12" y1="22.08" x2="12" y2="12"></line>
-                                </svg>
                                 <h4>AILT1001 Help Desk</h4>
                             </div>
                             
@@ -2704,10 +2609,6 @@
 
                         <div class="support-card">
                             <div class="support-card-header">
-                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2">
-                                    <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
-                                    <polyline points="22,6 12,13 2,6"></polyline>
-                                </svg>
                                 <h4>Course Email</h4>
                             </div>
                             
@@ -2720,16 +2621,12 @@
                                     <p><a href="mailto:ailit@hku.hk" class="email-link visit-link" target="_blank">ailit@hku.hk</a></p>
                                     <p style="margin-top: 0.7rem;">All course related questions should be posted on Ed.</p>
                                     <p style="margin-top: 0.4rem;"> Enquiries involving personal information (e.g., sick leave) should be sent to the course email.</p>
-                                    <p style="margin-top: 0.4rem;">Do not contact course staff directly.</p>
                                 </div>
                             </div>
                         </div>
 
                         <div class="support-card">
                             <div class="support-card-header">
-                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2">
-                                    <path d="M22 12h-4l-3 9L9 3l-3 9H2"></path>
-                                </svg>
                                 <h4>Counselling & Emotional Support</h4>
                             </div>
                             
@@ -2773,7 +2670,7 @@
                                     <h5><a href="https://edstem.org/au/login" class="visit-link" target="_blank">Edstem.org</a></h5>
                                     <span class="platform-badge">LMS</span>
                                 </div>
-                                <p>Interactive platform for course discussions, quiz, test, and learning materials.</p>
+                                <p>Interactive platform for course discussions, in-class activities, test, and learning materials.</p>
                                 <div class="platform-tip">
                                     <div class="platform-tip-title">Helpful Tip</div>
                                     <p class="platform-tip-content">Enrolled students should direct all course-related questions to the Ed discussion platform.</p>
@@ -3207,7 +3104,7 @@
                 key: 'final', pct: 40, color: getCSS('--c-final'), mid: '#7d3fe0', light: '#9f6ef2', tint: '#f1eafc',
                 title: 'Final Test',
                 icon: '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14,2 14,8 20,8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg>',
-                html: `<p>The final test will take place during the last lecture of the term.</p>`
+                html: `<p>The final test will be held during the final lecture of the semester.</p>`
             }
         ];
 
