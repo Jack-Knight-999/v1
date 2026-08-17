@@ -527,6 +527,9 @@
             filter: brightness(0.9);
         }
 
+        /* 2nd slide (studio) shown at full brightness */
+        .carousel-slide:nth-child(2) img { filter: brightness(1); }
+
         /* Arrows + dots grouped in one centered row at the bottom */
         .carousel-nav {
             position: absolute;
@@ -2142,22 +2145,22 @@
         <div class="carousel-container" id="carouselContainer" tabindex="0" role="region" aria-roledescription="carousel" aria-label="Poster exhibition photo carousel">
             <div class="carousel-wrapper" id="carouselWrapper">
                 <div class="carousel-slide" data-caption="Interactive Lecture">
-                    <img src="img/home/01.webp" alt="Interactive lecture session" fetchpriority="high" />
+                    <img src="img/home/01_lecture.webp" alt="Interactive lecture session" fetchpriority="high" />
+                </div>
+                <div class="carousel-slide" data-caption="Project Studio">
+                    <img src="img/home/02_studio.jpg" alt="Project studio session" loading="lazy" />
                 </div>
                 <div class="carousel-slide" data-caption="Project Exhibition">
-                    <img src="img/home/02.webp" alt="Project exhibition 1" loading="lazy" />
+                    <img src="img/home/03_exhibition.webp" alt="Project exhibition 1" loading="lazy" />
                 </div>
                 <div class="carousel-slide" data-caption="Project Exhibition">
-                    <img src="img/home/03.webp" alt="Project exhibition 2" loading="lazy" />
+                    <img src="img/home/04_exhibition.webp" alt="Project exhibition 2" loading="lazy" />
                 </div>
                 <div class="carousel-slide" data-caption="Project Exhibition">
-                    <img src="img/home/04.webp" alt="Project exhibition 3" loading="lazy" />
+                    <img src="img/home/05_exhibition.jpg" alt="Project exhibition 3" loading="lazy" />
                 </div>
                 <div class="carousel-slide" data-caption="Project Exhibition">
-                    <img src="img/home/05.webp" alt="Project exhibition 4" loading="lazy" />
-                </div>
-                <div class="carousel-slide" data-caption="Project Exhibition">
-                    <img src="img/home/06.webp" alt="Project exhibition 5" loading="lazy" />
+                    <img src="img/home/06_exhibition.webp" alt="Project exhibition 4" loading="lazy" />
                 </div>
             </div>
             <span class="carousel-caption" id="carouselCaption">Interactive Lecture</span>
@@ -2880,7 +2883,7 @@
             .map(s => s.getAttribute('data-caption') || '');
 
         function updateCarousel() {
-            carouselWrapper.style.transform = `translateX(-${currentSlide * (100 / 6)}%)`;
+            carouselWrapper.style.transform = `translateX(-${currentSlide * (100 / totalSlides)}%)`;
             dots.forEach((dot, index) => {
                 dot.classList.toggle('active', index === currentSlide);
             });
